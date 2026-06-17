@@ -1,0 +1,7 @@
+yt-dlp
+faster-whisper
+pyannote.audio
+langchain
+chromadb
+streamlit
+python-dotenv
