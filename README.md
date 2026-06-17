@@ -1,31 +1,31 @@
-# YouTube Plenary Search Engine MVP
+# Motor de Búsqueda Semántica de Sesiones Plenarias de YouTube - MVP
 
-This repository contains an MVP to process YouTube links from government plenary sessions, transcribe the audio, identify speakers, and provide semantic search over the generated content.
+Este repositorio contiene un MVP para procesar enlaces de YouTube de sesiones plenarias del gobierno, transcribir el audio, identificar oradores y proporcionar búsqueda semántica sobre el contenido generado.
 
-## 4-Block Pipeline
+## Pipeline de 4 Bloques
 
-1. **Block A — Extraction / ASR**
-   - Download audio from YouTube.
-   - Transcribe with timestamps using `faster-whisper`.
-2. **Block B — Diarization**
-   - Assign speaker labels over time segments with `pyannote.audio`.
-3. **Block C — RAG Search Engine**
-   - Chunk text, store embeddings in ChromaDB, and retrieve relevant context.
-4. **Block D — Streamlit UI**
-   - Process videos and run semantic search from a simple web interface.
+1. **Bloque A — Extracción / ASR**
+   - Descargar audio de YouTube.
+   - Transcribir con marcas de tiempo usando `faster-whisper`.
+2. **Bloque B — Diarización**
+   - Asignar etiquetas de orador en segmentos de tiempo con `pyannote.audio`.
+3. **Bloque C — Motor de Búsqueda RAG**
+   - Segmentar texto, almacenar embeddings en ChromaDB y recuperar contexto relevante.
+4. **Bloque D — Interfaz Streamlit**
+   - Procesar videos y ejecutar búsqueda semántica desde una interfaz web simple.
 
-## Project Structure
+## Estructura del Proyecto
 
 - `requirements.txt`
-- `src/transcriber.py` (Block A)
-- `src/diarizer.py` (Block B)
-- `src/search_engine.py` (Block C)
-- `src/app.py` (Block D)
+- `src/transcriber.py` (Bloque A)
+- `src/diarizer.py` (Bloque B)
+- `src/search_engine.py` (Bloque C)
+- `src/app.py` (Bloque D)
 
-## Setup Instructions
+## Instrucciones de Configuración
 
-1. Clone the repository.
-2. Create and activate a virtual environment.
+1. Clonar el repositorio.
+2. Crear y activar un entorno virtual.
    - Linux/macOS:
      ```bash
      python -m venv .venv
@@ -36,17 +36,17 @@ This repository contains an MVP to process YouTube links from government plenary
      python -m venv .venv
      .venv\Scripts\Activate.ps1
      ```
-3. Install dependencies:
+3. Instalar dependencias:
    ```bash
    pip install -r requirements.txt
    ```
-4. (Optional) Create a `.env` file for provider/model tokens.
-5. Run the Streamlit app:
+4. (Opcional) Crear un archivo `.env` para tokens de proveedores/modelos.
+5. Ejecutar la aplicación Streamlit:
    ```bash
    streamlit run src/app.py
    ```
 
-## MVP Notes
+## Notas del MVP
 
-- Heavy ML integrations are scaffolded with safe fallbacks so the project can run out of the box.
-- Replace mock/fallback logic with production model setup when moving beyond MVP stage.
+- Las integraciones de ML pesadas están andamiadas con alternativas seguras para que el proyecto funcione inmediatamente.
+- Reemplaza la lógica de simulación/alternativa con la configuración del modelo de producción cuando avances más allá de la etapa MVP.
