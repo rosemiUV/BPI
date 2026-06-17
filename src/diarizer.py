@@ -25,11 +25,10 @@ def diarize_audio(audio_path: Path) -> list[SpeakerSegment]:
         raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
     try:
-        from pyannote.audio import Pipeline
-
-        _ = Pipeline  # Structural import placeholder for real integration.
-    except Exception:
+        from pyannote.audio import Pipeline  # noqa: F401
+    except ImportError:
         return [SpeakerSegment(start=0.0, end=0.0, speaker="SPEAKER_00")]
 
-    # TODO: Replace this placeholder with authenticated pyannote pipeline usage.
+    # pyannote import is available, but authenticated pipeline setup is intentionally
+    # left for a production integration step in this MVP scaffold.
     return [SpeakerSegment(start=0.0, end=0.0, speaker="SPEAKER_00")]

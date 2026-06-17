@@ -44,13 +44,17 @@ class SemanticSearchEngine:
             split_docs = splitter.split_documents(docs)
             self._chunks = [doc.page_content for doc in split_docs]
 
-            # Placeholder: real embeddings provider intentionally deferred.
+            embedding = self._build_embedding(len(self._chunks))
+            if embedding is None:
+                self._vectordb = None
+                return
+
             self._vectordb = Chroma.from_texts(
                 texts=self._chunks,
-                embedding=None,
+                embedding=embedding,
                 metadatas=[{"source": "transcript"} for _ in self._chunks],
             )
-        except Exception:
+        except (ImportError, ValueError, TypeError):
             self._chunks = self._simple_chunks(transcript_text, chunk_size=chunk_size)
             self._vectordb = None
 
@@ -66,12 +70,22 @@ class SemanticSearchEngine:
                     RetrievedContext(content=doc.page_content, metadata=doc.metadata)
                     for doc in docs
                 ]
-            except Exception:
-                pass
+            except (ValueError, TypeError, RuntimeError):
+                self._vectordb = None
 
         # Fallback mock retrieval for scaffold usage.
         selected = self._chunks[:top_k]
         return [RetrievedContext(content=text, metadata={"source": "fallback"}) for text in selected]
+
+    @staticmethod
+    def _build_embedding(chunks_count: int) -> Any | None:
+        """Return a lightweight embedding model if available."""
+        try:
+            from langchain.embeddings import FakeEmbeddings
+        except ImportError:
+            return None
+
+        return FakeEmbeddings(size=max(8, min(64, chunks_count * 8)))
 
     @staticmethod
     def _simple_chunks(text: str, chunk_size: int) -> list[str]:

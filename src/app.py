@@ -45,7 +45,7 @@ with process_tab:
                 except Exception as exc:
                     status_message = (
                         "Scaffold mode: processed with fallback behavior due to missing model setup "
-                        f"or runtime dependencies ({exc})."
+                        f"or runtime dependencies ({type(exc).__name__})."
                     )
 
                 st.success(status_message)
