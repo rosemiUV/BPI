@@ -1,0 +1,20 @@
+# Entornos virtuales
+nlp_env/
+venv/
+.env
+
+# Archivos multimedia y resultados
+data_prueba/
+resultados/
+*.wav
+*.mp3
+*.mp4
+
+# Archivos de la caché de Python
+__pycache__/
+*.pyc
+# Herramientas locales
+src/tools_transcripcion/
+
+# Ignorar ejecutables pesados
+*.exe
