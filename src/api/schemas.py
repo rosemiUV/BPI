@@ -18,3 +18,6 @@ class SearchResponse(BaseModel):
     pregunta: str
     respuesta_llm: str
     fuentes_top_k: List[Fuente]
+
+class UrlVideoRequest(BaseModel):
+    url: str

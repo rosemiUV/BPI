@@ -50,23 +50,28 @@ def ejecutar_diarizacion(ruta_audio: Path, video_id: str) -> list:
     try:
         pipeline = Pipeline.from_pretrained(
             "pyannote/speaker-diarization-3.1",
-            token=HF_TOKEN
+            use_auth_token=HF_TOKEN
         )
         
         dispositivo = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"Moviendo Pyannote al dispositivo: {dispositivo}")
         pipeline = pipeline.to(dispositivo)
         
-        # Bypass de Windows: Cargar en memoria
-        print("Decodificando audio en memoria RAM...")
-        waveform, sample_rate = torchaudio.load(str(ruta_audio))
+        # Bypass de Windows: Cargar en memoria usando soundfile directamente en vez de torchaudio
+        print("Decodificando audio en memoria RAM con soundfile...")
+        import soundfile as sf
+        data, sample_rate = sf.read(str(ruta_audio), dtype='float32')
+        if data.ndim == 1:
+            data = data.reshape(-1, 1)
+        waveform = torch.from_numpy(data).T # (channels, frames)
+        
         audio_in_memory = {"waveform": waveform, "sample_rate": sample_rate}
         
         print("Ejecutando diarizacion (esto puede tardar)...")
         diarization = pipeline(audio_in_memory)
         
         segmentos_crudos = []
-        for segmento, _, ponente in diarization.speaker_diarization.itertracks(yield_label=True):
+        for segmento, _, ponente in diarization.itertracks(yield_label=True):
             segmentos_crudos.append({
                 "video_id": video_id,
                 "inicio": round(segmento.start, 3),
