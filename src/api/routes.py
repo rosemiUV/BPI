@@ -27,13 +27,13 @@ async def perform_search(request: SearchRequest):
             {
                 'ponente': 'SPEAKER_00',
                 'texto': 'Señorías, pasamos a debatir la nueva ley...',
-                'enlace_video': 'https://www.youtube.com/watch?v=fwgOUDzn4M8&t=10'
+                'enlace_video': 'https://www.youtube.com/watch?v=kBezQQVs8Ug&t=10'
             },
 
             {
                 'ponente': 'SPEAKER_00',
                 'texto': 'Señorías, pasamos a debatir la nueva ley 2...',
-                'enlace_video': 'https://www.youtube.com/watch?v=oiv_iJZGVv4&t=10'
+                'enlace_video': 'https://www.youtube.com/watch?v=Pihy5At3Q60&t=10'
             },
 
             {
