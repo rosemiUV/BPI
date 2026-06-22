@@ -1,12 +1,10 @@
 import json
 from pathlib import Path
 
-# Añadimos url_video a los parámetros
-def fusionar_datos_para_rag(ruta_transcripcion: Path, ruta_diarizacion: Path, ruta_guardado: Path, video_id: str, url_video: str, max_palabras=50, solapamiento=15):
+def fusionar_datos_para_rag(ruta_transcripcion: Path, ruta_diarizacion: Path, ruta_guardado: Path, video_id: str, url_video: str, titulo_video: str, fecha_publicacion: str, max_palabras=50, solapamiento=15):
     """
-    Junta transcripción y diarización usando Chunking Semántico con Solapamiento.
+    Junta transcripción y diarización añadiendo metadatos completos para Vector DB.
     """
-    # 1. Cargar ambos JSONs
     with open(ruta_transcripcion, 'r', encoding='utf-8') as f:
         transcripcion = json.load(f)
     with open(ruta_diarizacion, 'r', encoding='utf-8') as f:
@@ -18,15 +16,13 @@ def fusionar_datos_para_rag(ruta_transcripcion: Path, ruta_diarizacion: Path, ru
                 return turno["ponente"]
         return "DESCONOCIDO"
 
-    # 2. Asignar ponente a cada segmento de WhisperX y "romperlo" en palabras
     todas_las_palabras = []
     for seg in transcripcion:
         punto_medio = (seg["inicio"] + seg["fin"]) / 2.0
         ponente = encontrar_ponente(punto_medio, diarizacion)
         
         palabras = seg["texto"].split()
-        if not palabras:
-            continue
+        if not palabras: continue
             
         duracion_por_palabra = (seg["fin"] - seg["inicio"]) / len(palabras)
         
@@ -38,7 +34,6 @@ def fusionar_datos_para_rag(ruta_transcripcion: Path, ruta_diarizacion: Path, ru
                 "ponente": ponente
             })
 
-    # 3. Crear los Chunks con ventana deslizante
     chunks_finales = []
     salto = max_palabras - solapamiento
     if salto <= 0: salto = max_palabras
@@ -54,10 +49,19 @@ def fusionar_datos_para_rag(ruta_transcripcion: Path, ruta_diarizacion: Path, ru
         ponentes_en_ventana = [p["ponente"] for p in ventana]
         ponente_dominante = max(set(ponentes_en_ventana), key=ponentes_en_ventana.count)
         
-        # --- AÑADIMOS LA URL AQUÍ ---
+        # --- CAMPOS NUEVOS Y AUTOGENERADOS ---
+        # Formateamos el tiempo a entero para la URL de YouTube
+        url_tiempo = f"{url_video}&t={int(inicio_chunk)}s"
+        # Creamos un ID único combinando el vídeo y el segundo de inicio
+        chunk_id = f"{video_id}_{int(inicio_chunk)}_{int(fin_chunk)}"
+        
         chunks_finales.append({
+            "chunk_id": chunk_id,
             "video_id": video_id,
+            "titulo_video": titulo_video,
+            "fecha_publicacion": fecha_publicacion,
             "url_video": url_video,
+            "url_exacta_tiempo": url_tiempo,
             "ponente": ponente_dominante,
             "inicio": round(inicio_chunk, 3),
             "fin": round(fin_chunk, 3),
@@ -65,7 +69,6 @@ def fusionar_datos_para_rag(ruta_transcripcion: Path, ruta_diarizacion: Path, ru
             "texto": texto_chunk
         })
 
-    # 4. Guardar el JSON final definitivo
     ruta_guardado.parent.mkdir(parents=True, exist_ok=True)
     with open(ruta_guardado, 'w', encoding='utf-8') as f:
         json.dump(chunks_finales, f, indent=2, ensure_ascii=False)

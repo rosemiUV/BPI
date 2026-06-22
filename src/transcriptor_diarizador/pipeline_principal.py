@@ -66,6 +66,21 @@ if __name__ == "__main__":
         print(f"Diarizacion guardada en: {ruta_json_diar}")
     else:
         print("Pyannote no devolvio resultados.")
+    
+    import yt_dlp
+    
+    print("\n--- EXTRAYENDO METADATOS DEL VÍDEO ---")
+    ydl_opts = {'quiet': True, 'skip_download': True}
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(url_video, download=False)
+        titulo_video = info_dict.get('title', 'Titulo_Desconocido')
+        
+        # yt-dlp devuelve la fecha como YYYYMMDD, la formateamos a YYYY-MM-DD
+        fecha_cruda = info_dict.get('upload_date', '19700101')
+        fecha_publicacion = f"{fecha_cruda[:4]}-{fecha_cruda[4:6]}-{fecha_cruda[6:]}"
+        
+    print(f"Título detectado: {titulo_video}")
+    print(f"Fecha detectada: {fecha_publicacion}")
         
     print("\n--- INICIANDO FASE 4: FUSION Y CHUNKING SEMANTICO ---")
     from fusionador_prueba import fusionar_datos_para_rag
@@ -79,7 +94,9 @@ if __name__ == "__main__":
             ruta_diarizacion=ruta_json_diar,
             ruta_guardado=ruta_json_final,
             video_id=video_id,
-            url_video=url_video,  # <--- LE PASAMOS LA URL AQUÍ
+            url_video=url_video,
+            titulo_video=titulo_video,             
+            fecha_publicacion=fecha_publicacion,  
             max_palabras=50,     
             solapamiento=15      
         )
