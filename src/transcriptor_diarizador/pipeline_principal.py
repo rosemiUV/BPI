@@ -104,5 +104,20 @@ if __name__ == "__main__":
         print(f"Guardado en: {ruta_json_final}")
     else:
         print("Error: Faltan archivos de la Fase 2 o 3 para hacer la fusión.")
+    
+    # FASE 5 (SUBIDA A BASE DE DATOS VECTORIAL)
+    print("\n--- INICIANDO FASE 5: SUBIDA A CHROMA DB ---")
+    try:
+        from cargador_chroma import subir_datos_a_chroma
+        if ruta_json_final.exists():
+            subir_datos_a_chroma(ruta_json_final) 
+        else:
+            print("Error: No se encontró el JSON final para subir a la base de datos.")
+    except ImportError as e:
+        print(f"Aviso: No se pudo importar el módulo ChromaDB. Error: {e}")
+    except Exception as e:
+        print(f"Error durante la subida a ChromaDB: {e}")
+
+    print("\nPIPELINE COMPLETADO AL 100%.")
 
     print("\nPIPELINE COMPLETADO AL 100%.")
