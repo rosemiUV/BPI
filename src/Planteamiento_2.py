@@ -1,17 +1,17 @@
 import json
+import os
 import chromadb
 from chromadb.utils import embedding_functions
-from anthropic import Anthropic
+import ollama
 
 
 # ─────────────────────────────────────────────────────────────
-# CHUNK 3 - CONECTAR A CHROMADB REMOTA
+# CONECTAR A CHROMADB REMOTA
 # ─────────────────────────────────────────────────────────────
-# Cambia estos valores con lo que te diga tu compañero
 
-CHROMA_HOST      = "localhost"   # IP o dominio del servidor de tu compañero
-CHROMA_PORT      = 8000          # puerto (8000 es el de ChromaDB por defecto)
-NOMBRE_COLECCION = "plenario"    # cambiar cuando lo tengáis acordado
+CHROMA_HOST      = "localhost"
+CHROMA_PORT      = 8000
+NOMBRE_COLECCION = "plenario"
 
 ef = embedding_functions.DefaultEmbeddingFunction()
 
@@ -30,7 +30,15 @@ print(f"Coleccion: '{NOMBRE_COLECCION}' — {collection.count()} fragmentos")
 
 
 # ─────────────────────────────────────────────────────────────
-# CHUNK 4 - FUNCIÓN DE BÚSQUEDA
+# RUTA DONDE SE GUARDARÁ EL JSON DE SALIDA
+# ─────────────────────────────────────────────────────────────
+
+RUTA_BASE         = os.path.dirname(os.path.abspath(__file__))
+RUTA_JSON_SALIDA  = os.path.join(RUTA_BASE, "resultado_busqueda.json")
+
+
+# ─────────────────────────────────────────────────────────────
+# FUNCIONES
 # ─────────────────────────────────────────────────────────────
 
 def _segundos_a_mmss(segundos: float) -> str:
@@ -41,24 +49,21 @@ def _segundos_a_mmss(segundos: float) -> str:
 
 def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
     """
-    Recibe la pregunta del usuario y el identificador del video,
-    filtra primero los fragmentos de ese video y luego busca
-    los más similares semánticamente.
+    Recibe la pregunta del usuario y el video_id del JSON de entrada.
+    Busca los fragmentos más relevantes en ChromaDB y genera una respuesta con Llama-3.
+    Guarda el resultado en resultado_busqueda.json y lo devuelve como diccionario.
 
-    Devuelve el JSON de salida completo del proyecto:
-    {
-        "pregunta"      : lo que escribió el usuario
-        "prompt"        : el prompt completo que se mandó al LLM
-        "respuesta_llm" : la respuesta de Claude
-        "fuentes_top_k" : los K fragmentos más similares
-    }
+    Parámetros:
+        pregunta  → pregunta que escribe el usuario en Streamlit
+        video_id  → viene de los metadatos del JSON de entrada (ej: "video_25bc77db")
+        top_k     → número de fragmentos a recuperar (entre 5 y 10)
     """
 
-    # ── 1. Buscar los top-k fragmentos FILTRANDO por video_id ───────────
+    # 1. Buscar los top-k fragmentos filtrando por video_id
     resultados = collection.query(
         query_texts=[pregunta],
         n_results=top_k,
-        where={"video_id": {"$eq": video_id}},   # <-- FILTRO NUEVO
+        where={"video_id": {"$eq": video_id}},
         include=["documents", "metadatas"]
     )
 
@@ -66,15 +71,17 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
     metadatos  = resultados["metadatas"][0]
 
     if not documentos:
-        return {
+        resultado = {
             "pregunta":      pregunta,
             "prompt":        "",
             "respuesta_llm": f"No se encontraron fragmentos relevantes en el video '{video_id}'.",
             "fuentes_top_k": []
         }
+        with open(RUTA_JSON_SALIDA, "w", encoding="utf-8") as f:
+            json.dump(resultado, f, ensure_ascii=False, indent=2)
+        return resultado
 
-    # ── 2. Construir el contexto con el formato acordado ────────────────
-    # Formato: "Ponente K: (mm:ss - mm:ss): [Texto]"
+    # 2. Construir el contexto
     lineas_contexto = []
     for i, (doc, meta) in enumerate(zip(documentos, metadatos), start=1):
         t_inicio = _segundos_a_mmss(meta["inicio"])
@@ -85,41 +92,57 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
 
     contexto = "\n".join(lineas_contexto)
 
-    # ── 3. Construir el prompt completo ─────────────────────────────────
+    # 3. Construir el prompt
     prompt = (
         f"Pregunta del usuario: {pregunta}\n\n"
         f"Contexto:\n{contexto}"
     )
 
-    # ── 4. Llamar a LLM ──────────────────────────────────────────────
-    client_llm = Anthropic()
-
-    mensaje = client_llm.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=1000,
-        system=(
-            "Eres un asistente especializado en sesiones parlamentarias. "
-            "Responde usando ÚNICAMENTE los fragmentos del contexto que se te dan. "
-            "Si la respuesta no está en los fragmentos, dilo claramente. "
-            "Sé conciso y cita al ponente cuando sea relevante."
-        ),
-        messages=[{"role": "user", "content": prompt}]
+    # 4. Llamar a Llama-3 con Ollama
+    respuesta = ollama.chat(
+        model="llama3",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres un asistente especializado en sesiones parlamentarias. "
+                    "Responde usando ÚNICAMENTE los fragmentos del contexto que se te dan. "
+                    "Si la respuesta no está en los fragmentos, dilo claramente. "
+                    "Sé conciso y cita al ponente cuando sea relevante."
+                )
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
     )
 
-    respuesta_llm = mensaje.content[0].text
+    respuesta_llm = respuesta["message"]["content"]
 
-    # ── 5. Construir las fuentes top-k ──────────────────────────────────
+    # 5. Construir las fuentes top-k
     fuentes_top_k = []
     for doc, meta in zip(documentos, metadatos):
         fuentes_top_k.append({
             "ponente":      meta["ponente"],
             "texto":        doc,
-            "enlace_video": meta["enlace_video"]
+            "enlace_video": meta["enlace_video"],
+            "inicio":       _segundos_a_mmss(meta["inicio"]),
+            "fin":          _segundos_a_mmss(meta["fin"])
         })
 
-    return {
+    resultado = {
         "pregunta":      pregunta,
         "prompt":        prompt,
         "respuesta_llm": respuesta_llm,
         "fuentes_top_k": fuentes_top_k
     }
+
+    # 6. Guardar el JSON de salida 
+    with open(RUTA_JSON_SALIDA, "w", encoding="utf-8") as f:
+        json.dump(resultado, f, ensure_ascii=False, indent=2)
+
+    print(f"JSON guardado en {RUTA_JSON_SALIDA}")
+
+    return resultado
+
