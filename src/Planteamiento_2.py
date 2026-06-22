@@ -46,7 +46,7 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
     Devuelve el resultado como diccionario para Streamlit.
 
     Parámetros:
-        pregunta  → pregunta que escribe el usuario en la interfaz
+        pregunta  → pregunta que escribe el usuario en Streamlit
         video_id  → viene de los metadatos del JSON de entrada 
         top_k     → número de fragmentos a recuperar (entre 5 y 10)
     """
@@ -115,7 +115,7 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
         fuentes_top_k.append({
             "ponente":      meta["ponente"],
             "texto":        doc,
-            "enlace_video": meta["enlace_video"],
+            "url_exacta_tiempo": meta["url_exacta_tiempo"],
             "inicio":       _segundos_a_mmss(meta["inicio"]),
             "fin":          _segundos_a_mmss(meta["fin"])
         })
@@ -126,6 +126,3 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
         "respuesta_llm": respuesta_llm,
         "fuentes_top_k": fuentes_top_k
     }
-
-
-
