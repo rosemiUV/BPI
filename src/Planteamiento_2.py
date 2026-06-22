@@ -9,8 +9,8 @@ import ollama
 # CONECTAR A CHROMADB REMOTA
 # ─────────────────────────────────────────────────────────────
 
-CHROMA_HOST      = "localhost"
-CHROMA_PORT      = 8000
+CHROMA_HOST      = "chromadb-production-8466.up.railway.app"
+CHROMA_PORT      = 443
 NOMBRE_COLECCION = "plenario"
 
 ef = embedding_functions.DefaultEmbeddingFunction()
@@ -30,14 +30,6 @@ print(f"Coleccion: '{NOMBRE_COLECCION}' — {collection.count()} fragmentos")
 
 
 # ─────────────────────────────────────────────────────────────
-# RUTA DONDE SE GUARDARÁ EL JSON DE SALIDA
-# ─────────────────────────────────────────────────────────────
-
-RUTA_BASE         = os.path.dirname(os.path.abspath(__file__))
-RUTA_JSON_SALIDA  = os.path.join(RUTA_BASE, "resultado_busqueda.json")
-
-
-# ─────────────────────────────────────────────────────────────
 # FUNCIONES
 # ─────────────────────────────────────────────────────────────
 
@@ -51,11 +43,11 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
     """
     Recibe la pregunta del usuario y el video_id del JSON de entrada.
     Busca los fragmentos más relevantes en ChromaDB y genera una respuesta con Llama-3.
-    Guarda el resultado en resultado_busqueda.json y lo devuelve como diccionario.
+    Devuelve el resultado como diccionario para Streamlit.
 
     Parámetros:
-        pregunta  → pregunta que escribe el usuario en Streamlit
-        video_id  → viene de los metadatos del JSON de entrada (ej: "video_25bc77db")
+        pregunta  → pregunta que escribe el usuario en la interfaz
+        video_id  → viene de los metadatos del JSON de entrada 
         top_k     → número de fragmentos a recuperar (entre 5 y 10)
     """
 
@@ -71,15 +63,12 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
     metadatos  = resultados["metadatas"][0]
 
     if not documentos:
-        resultado = {
+        return {
             "pregunta":      pregunta,
             "prompt":        "",
             "respuesta_llm": f"No se encontraron fragmentos relevantes en el video '{video_id}'.",
             "fuentes_top_k": []
         }
-        with open(RUTA_JSON_SALIDA, "w", encoding="utf-8") as f:
-            json.dump(resultado, f, ensure_ascii=False, indent=2)
-        return resultado
 
     # 2. Construir el contexto
     lineas_contexto = []
@@ -131,18 +120,12 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
             "fin":          _segundos_a_mmss(meta["fin"])
         })
 
-    resultado = {
+    return {
         "pregunta":      pregunta,
         "prompt":        prompt,
         "respuesta_llm": respuesta_llm,
         "fuentes_top_k": fuentes_top_k
     }
 
-    # 6. Guardar el JSON de salida 
-    with open(RUTA_JSON_SALIDA, "w", encoding="utf-8") as f:
-        json.dump(resultado, f, ensure_ascii=False, indent=2)
 
-    print(f"JSON guardado en {RUTA_JSON_SALIDA}")
-
-    return resultado
 
