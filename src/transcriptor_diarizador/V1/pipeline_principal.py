@@ -8,9 +8,9 @@ from pathlib import Path
 warnings.filterwarnings("ignore")
 
 # Usamos rutas absolutas del proyecto para evitar errores al llamar desde FastAPI
-from src.transcriptor_diarizador.transcriber_prueba import configurar_ffmpeg_local, descargar_audio_youtube, probar_whisperx
-from src.transcriptor_diarizador.diarizador_prueba import ejecutar_diarizacion
-from src.transcriptor_diarizador.fusionador_prueba import fusionar_datos_para_rag
+from src.transcriptor_diarizador.V1.transcriber_prueba import configurar_ffmpeg_local, descargar_audio_youtube, probar_whisperx
+from src.transcriptor_diarizador.V1.diarizador_prueba import ejecutar_diarizacion
+from src.transcriptor_diarizador.V1.fusionador_prueba import fusionar_datos_para_rag
 
 configurar_ffmpeg_local()
 
@@ -102,7 +102,7 @@ def ejecutar_pipeline_completo(url_video: str):
     print("\n--- INICIANDO FASE 5: SUBIDA A CHROMA DB ---")
     try:
         # AQUÍ ESTÁ LA MAGIA: Le ponemos la ruta completa
-        from src.transcriptor_diarizador.cargador_chroma import subir_datos_a_chroma
+        from src.transcriptor_diarizador.V1.cargador_chroma import subir_datos_a_chroma
         
         if ruta_json_final.exists():
             subir_datos_a_chroma(ruta_json_final) 

@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException
 from datetime import datetime
 from src.api.schemas import SearchRequest, SearchResponse
 from src.api.schemas import UrlVideoRequest, ContextRequest, SummaryRequest, EntitiesRequest
-from src.transcriptor_diarizador.pipeline_principal import ejecutar_pipeline_lote
+from src.transcriptor_diarizador.V1.pipeline_principal import ejecutar_pipeline_lote
 
 # Instanciamos el enrutador
 router = APIRouter()
@@ -18,7 +18,7 @@ def get_sessions():
     Devuelve la lista de sesiones únicas almacenadas en ChromaDB.
     """
     try:
-        from src.transcriptor_diarizador.cargador_chroma import conectar_chromadb, obtener_coleccion
+        from src.transcriptor_diarizador.V1.cargador_chroma import conectar_chromadb, obtener_coleccion
         cliente = conectar_chromadb()
         coleccion = obtener_coleccion(cliente)
         
