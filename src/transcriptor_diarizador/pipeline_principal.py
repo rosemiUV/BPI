@@ -15,7 +15,7 @@ from transcriber_prueba import descargar_audio_youtube, probar_whisperx
 from diarizador_prueba import ejecutar_diarizacion
 
 if __name__ == "__main__":
-    url_video = "https://www.youtube.com/watch?v=RerhvFiQIYI"
+    url_video = "https://www.youtube.com/watch?v=qlTJyCRe76Y"
     
     # --- NUEVO: Generar el VIDEO_ID único al arrancar ---
     video_id = "video_" + hashlib.sha1(url_video.encode("utf-8")).hexdigest()[:8]
@@ -120,4 +120,3 @@ if __name__ == "__main__":
 
     print("\nPIPELINE COMPLETADO AL 100%.")
 
-    print("\nPIPELINE COMPLETADO AL 100%.")
