@@ -1,0 +1,37 @@
+[
+  {
+    "video_id": "video_7ca5f7af",
+    "inicio": 2.832,
+    "fin": 13.97,
+    "ponente": "SPEAKER_00",
+    "duracion": 11.138
+  },
+  {
+    "video_id": "video_7ca5f7af",
+    "inicio": 15.337,
+    "fin": 31.098,
+    "ponente": "SPEAKER_00",
+    "duracion": 15.761
+  },
+  {
+    "video_id": "video_7ca5f7af",
+    "inicio": 31.368,
+    "fin": 31.385,
+    "ponente": "SPEAKER_01",
+    "duracion": 0.017
+  },
+  {
+    "video_id": "video_7ca5f7af",
+    "inicio": 33.612,
+    "fin": 53.795,
+    "ponente": "SPEAKER_00",
+    "duracion": 20.183
+  },
+  {
+    "video_id": "video_7ca5f7af",
+    "inicio": 57.389,
+    "fin": 82.111,
+    "ponente": "SPEAKER_00",
+    "duracion": 24.722
+  }
+]

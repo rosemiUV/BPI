@@ -5,16 +5,28 @@ yt-dlp>=2023.12.30
 
 # Reconocimiento de voz (ASR)
 faster-whisper>=0.10.0
+whisperx
 
 # Diarización de oradores
 pyannote.audio>=3.0.1
+torch
+torchaudio
 
-# Búsqueda semántica
+# Búsqueda semántica (RAG)
 langchain>=0.1.0
 chromadb>=0.4.0
+ollama
+groq
 
 # Interfaz web
 streamlit>=1.28.0
 
-# Utilidades
+# Backend API
+fastapi
+uvicorn
+pydantic
+
+# Utilidades y parches
 python-dotenv>=1.0.0
+omegaconf
+huggingface_hub

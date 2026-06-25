@@ -53,6 +53,17 @@ function App() {
     if (!urlVideo.trim()) return
     setProcesandoUrl(true)
 
+    // Extraer las URLs separadas por coma o salto de línea
+    const urlsArray = urlVideo
+      .split(/[\n,]+/)
+      .map(u => u.trim())
+      .filter(u => u !== '');
+
+    if (urlsArray.length === 0) {
+      setProcesandoUrl(false);
+      return;
+    }
+
     try {
       // Hacemos la peticion POST a nuestro endpoint de FastAPI
       const respuesta = await fetch('http://localhost:8000/api/process', {
@@ -61,24 +72,36 @@ function App() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          url: urlVideo
+          url: urlsArray[0], // Compatibilidad hacia atrás
+          urls: urlsArray    // Nueva funcionalidad lote
         })
       })
 
       if (!respuesta.ok) {
-        throw new Error('Error en el servidor al procesar el vídeo')
+        throw new Error('Error en el servidor al procesar el/los vídeo(s)')
       }
 
-      const nuevaSesion = await respuesta.json()
+      const respuestaData = await respuesta.json()
 
-      setSesionActiva(nuevaSesion)
-      // Añadir la nueva sesión a la lista para que aparezca al volver al inicio
-      setSesionesGuardadas(prev => {
-        if (!prev.find(s => s.id_sesion === nuevaSesion.id_sesion)) {
-          return [nuevaSesion, ...prev]
+      // Soporte para array de sesiones (modo lote) o una sola sesión (modo normal)
+      if (Array.isArray(respuestaData)) {
+        if (respuestaData.length > 0) {
+          setSesionActiva(respuestaData[0])
+          setSesionesGuardadas(prev => {
+            const nuevas = respuestaData.filter(nueva => !prev.find(s => s.id_sesion === nueva.id_sesion));
+            return [...nuevas, ...prev];
+          });
         }
-        return prev
-      })
+      } else {
+        setSesionActiva(respuestaData)
+        setSesionesGuardadas(prev => {
+          if (!prev.find(s => s.id_sesion === respuestaData.id_sesion)) {
+            return [respuestaData, ...prev]
+          }
+          return prev
+        })
+      }
+      
       setUrlVideo('')
 
     } catch (error) {
@@ -260,13 +283,13 @@ function App() {
 
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <div className="absolute top-4 left-4 flex items-center pointer-events-none">
                   <Video size={20} className="text-gray-400" />
                 </div>
-                <input
-                  type="url"
-                  className='w-full pl-12 pr-5 py-4 bg-[#f5f5f7] rounded-full focus:bg-white focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 border border-transparent outline-none transition-all placeholder:text-gray-400 font-medium'
-                  placeholder='https://www.youtube.com/watch?v=...'
+                <textarea
+                  className='w-full pl-12 pr-5 py-4 bg-[#f5f5f7] rounded-3xl focus:bg-white focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 border border-transparent outline-none transition-all placeholder:text-gray-400 font-medium resize-none'
+                  placeholder='Pega aquí uno o varios enlaces de YouTube (separados por coma o salto de línea)'
+                  rows={3}
                   value={urlVideo}
                   onChange={(e) => setUrlVideo(e.target.value)}
                 />
@@ -274,7 +297,7 @@ function App() {
               <button
                 onClick={procesarNuevoVideo}
                 disabled={procesandoUrl || !urlVideo.trim()}
-                className='px-8 py-4 bg-[#1d1d1f] text-white font-semibold rounded-full hover:bg-black transition-all disabled:opacity-50 flex items-center justify-center min-w-[160px] shadow-sm'
+                className='px-8 py-4 bg-[#1d1d1f] text-white font-semibold rounded-3xl hover:bg-black transition-all disabled:opacity-50 flex items-center justify-center min-w-[160px] shadow-sm h-[88px] sm:h-auto'
               >
                 {procesandoUrl ? <Loader2 className="animate-spin" size={20} /> : 'Analizar'}
               </button>

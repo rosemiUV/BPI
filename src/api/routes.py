@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException
 from datetime import datetime
 from src.api.schemas import SearchRequest, SearchResponse
 from src.api.schemas import UrlVideoRequest
-from src.transcriptor_diarizador.pipeline_principal import ejecutar_pipeline_completo
+from src.transcriptor_diarizador.pipeline_principal import ejecutar_pipeline_lote
 
 # Instanciamos el enrutador
 router = APIRouter()
@@ -67,28 +67,23 @@ def perform_search(request: SearchRequest):
 @router.post('/process')
 def process_video(request: UrlVideoRequest):
     try:
-        print(f"Recibida petición para procesar URL: {request.url}")
+        urls_to_process = []
+        if request.urls:
+            urls_to_process.extend(request.urls)
+        elif request.url:
+            urls_to_process.append(request.url)
+            
+        if not urls_to_process:
+            raise HTTPException(status_code=400, detail="Se requiere al menos una URL.")
+            
+        print(f"Petición recibida para procesar {len(urls_to_process)} URLs. Delegando a la función de lote...")
+        
+        sesiones_procesadas = ejecutar_pipeline_lote(urls_to_process)
 
-        # 1. FASE DE PROCESAMIENTO (Whisper + PyAnnote + Fusión)
-        video_id, ruta_json_final, titulo_real = ejecutar_pipeline_completo(request.url)
+        return sesiones_procesadas
 
-        # 2. FASE DE INGESTA VECTORIAL (ChromaDB)
-        print(f"Iniciando ingesta en base de datos vectorial del archivo: {ruta_json_final}")
-        try:
-            from src.transcriptor_diarizador.cargador_chroma import subir_datos_a_chroma
-            subir_datos_a_chroma(ruta_json_final)
-        except Exception as e:
-            print(f"Error al subir a ChromaDB: {e}")
-
-        # 3. RESPUESTA AL FRONTEND
-        # Devolvemos exactamente lo que tu React está esperando para pintar la interfaz
-        return {
-            "id_sesion": video_id,
-            "titulo": titulo_real,
-            "fecha": datetime.now().strftime("%d/%m/%Y"),
-            "duracion": "Procesada" 
-        }
-
+    except ImportError:
+        raise HTTPException(status_code=501, detail="La función de procesamiento en lote aún no está implementada (esperando pull).")
     except Exception as e:
         print(f"Error crítico en el endpoint /api/process: {e}")
-        raise HTTPException(status_code=500, detail="Error procesando el vídeo en el backend.")
+        raise HTTPException(status_code=500, detail="Error procesando los vídeos en el backend.")

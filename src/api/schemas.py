@@ -3,7 +3,7 @@ Modelos de datos (Pydantic) para validación estricta
 '''
 
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 #1. Lo que recibimos del Frontend (Input)
 class SearchRequest(BaseModel):
@@ -21,4 +21,5 @@ class SearchResponse(BaseModel):
     fuentes_top_k: List[Fuente]
 
 class UrlVideoRequest(BaseModel):
-    url: str
+    url: Optional[str] = None
+    urls: Optional[List[str]] = None
