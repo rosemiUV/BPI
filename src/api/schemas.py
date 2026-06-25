@@ -23,3 +23,16 @@ class SearchResponse(BaseModel):
 class UrlVideoRequest(BaseModel):
     url: Optional[str] = None
     urls: Optional[List[str]] = None
+
+class ContextRequest(BaseModel):
+    video_id: str
+    ponente: str
+    inicio: float
+    fin: float
+
+class SummaryRequest(BaseModel):
+    video_id: str
+
+class EntitiesRequest(BaseModel):
+    video_id: str
+    pregunta: Optional[str] = None

@@ -50,7 +50,7 @@ def ejecutar_diarizacion(ruta_audio: Path, video_id: str) -> list:
     try:
         pipeline = Pipeline.from_pretrained(
             "pyannote/speaker-diarization-3.1",
-            token=HF_TOKEN
+            use_auth_token=HF_TOKEN
         )
         
         dispositivo = torch.device("cuda" if torch.cuda.is_available() else "cpu")
