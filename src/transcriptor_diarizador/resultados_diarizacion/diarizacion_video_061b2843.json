@@ -1,72 +1,3069 @@
 [
   {
-    "video_id": "video_061b2843",
-    "inicio": 0.875,
-    "fin": 33.916,
-    "ponente": "SPEAKER_03",
-    "duracion": 33.041
+    "start": 0.938,
+    "end": 9.084,
+    "text": " Su Majestad el Rey ha inaugurado la Conferencia de Presidentes de Parlamentos de la Unión Europea, celebrada en Palma de Mallorca durante los días 22 y 23 de abril.",
+    "words": [
+      {
+        "word": "Su",
+        "start": 0.938,
+        "end": 1.018,
+        "score": 0.965,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Majestad",
+        "start": 1.058,
+        "end": 1.478,
+        "score": 0.859,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 1.538,
+        "end": 1.619,
+        "score": 0.743,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Rey",
+        "start": 1.679,
+        "end": 1.799,
+        "score": 0.922,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ha",
+        "start": 1.819,
+        "end": 1.859,
+        "score": 0.505,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "inaugurado",
+        "start": 1.899,
+        "end": 2.359,
+        "score": 0.613,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 2.399,
+        "end": 2.459,
+        "score": 0.748,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Conferencia",
+        "start": 2.519,
+        "end": 2.979,
+        "score": 0.835,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 3.02,
+        "end": 3.12,
+        "score": 0.414,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Presidentes",
+        "start": 3.18,
+        "end": 3.64,
+        "score": 0.854,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 3.66,
+        "end": 3.76,
+        "score": 0.417,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Parlamentos",
+        "start": 3.82,
+        "end": 4.3,
+        "score": 0.882,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 4.34,
+        "end": 4.42,
+        "score": 0.581,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 4.441,
+        "end": 4.501,
+        "score": 0.752,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Unión",
+        "start": 4.541,
+        "end": 4.661,
+        "score": 0.899,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Europea,",
+        "start": 4.721,
+        "end": 5.061,
+        "score": 0.894,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "celebrada",
+        "start": 5.421,
+        "end": 5.821,
+        "score": 0.89,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "en",
+        "start": 5.861,
+        "end": 5.922,
+        "score": 0.746,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Palma",
+        "start": 5.942,
+        "end": 6.162,
+        "score": 0.896,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 6.202,
+        "end": 6.262,
+        "score": 0.847,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Mallorca",
+        "start": 6.302,
+        "end": 6.682,
+        "score": 0.748,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "durante",
+        "start": 6.822,
+        "end": 7.102,
+        "score": 0.87,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "los",
+        "start": 7.162,
+        "end": 7.242,
+        "score": 0.88,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "días",
+        "start": 7.302,
+        "end": 7.483,
+        "score": 0.814,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "22",
+        "start": 7.503,
+        "end": 8.143,
+        "score": 0.775,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "y",
+        "start": 8.163,
+        "end": 8.323,
+        "score": 0.588,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "23",
+        "start": 8.583,
+        "end": 8.723,
+        "score": 0.69,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 8.744,
+        "end": 8.824,
+        "score": 0.503,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "abril.",
+        "start": 8.864,
+        "end": 9.084,
+        "score": 0.741,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.1481710480643319,
+    "speaker": "SPEAKER_03"
   },
   {
-    "video_id": "video_061b2843",
-    "inicio": 33.916,
-    "fin": 44.227,
-    "ponente": "SPEAKER_02",
-    "duracion": 10.311
+    "start": 9.104,
+    "end": 16.029,
+    "text": "A la cita también han asistido la presidenta del Congreso de los Diputados, Francina Armengol, y el presidente del Senado, Pedro Royán.",
+    "words": [
+      {
+        "word": "A",
+        "start": 9.104,
+        "end": 9.124,
+        "score": 0.003,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 9.664,
+        "end": 9.724,
+        "score": 0.945,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "cita",
+        "start": 9.784,
+        "end": 10.004,
+        "score": 0.797,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "también",
+        "start": 10.044,
+        "end": 10.245,
+        "score": 0.962,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "han",
+        "start": 10.285,
+        "end": 10.365,
+        "score": 0.827,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "asistido",
+        "start": 10.405,
+        "end": 10.805,
+        "score": 0.911,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 10.825,
+        "end": 10.865,
+        "score": 0.001,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "presidenta",
+        "start": 11.025,
+        "end": 11.445,
+        "score": 0.844,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "del",
+        "start": 11.505,
+        "end": 11.606,
+        "score": 0.88,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Congreso",
+        "start": 11.666,
+        "end": 11.966,
+        "score": 0.853,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 12.006,
+        "end": 12.066,
+        "score": 0.762,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "los",
+        "start": 12.106,
+        "end": 12.186,
+        "score": 0.92,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Diputados,",
+        "start": 12.226,
+        "end": 12.666,
+        "score": 0.947,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Francina",
+        "start": 12.686,
+        "end": 13.167,
+        "score": 0.517,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Armengol,",
+        "start": 13.187,
+        "end": 13.627,
+        "score": 0.743,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "y",
+        "start": 13.927,
+        "end": 13.967,
+        "score": 0.97,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 14.007,
+        "end": 14.087,
+        "score": 0.788,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "presidente",
+        "start": 14.127,
+        "end": 14.528,
+        "score": 0.886,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "del",
+        "start": 14.588,
+        "end": 14.708,
+        "score": 0.832,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Senado,",
+        "start": 14.748,
+        "end": 15.088,
+        "score": 0.896,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Pedro",
+        "start": 15.248,
+        "end": 15.488,
+        "score": 0.885,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Royán.",
+        "start": 15.548,
+        "end": 16.029,
+        "score": 0.777,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.1481710480643319,
+    "speaker": "SPEAKER_03"
   },
   {
-    "video_id": "video_061b2843",
-    "inicio": 44.463,
-    "fin": 52.36,
-    "ponente": "SPEAKER_03",
-    "duracion": 7.897
+    "start": 16.589,
+    "end": 20.071,
+    "text": "En este encuentro, el jefe del Estado ha saludado a las autoridades presentes.",
+    "words": [
+      {
+        "word": "En",
+        "start": 16.589,
+        "end": 16.669,
+        "score": 0.802,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "este",
+        "start": 16.709,
+        "end": 16.829,
+        "score": 0.976,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "encuentro,",
+        "start": 16.869,
+        "end": 17.289,
+        "score": 0.87,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 17.51,
+        "end": 17.59,
+        "score": 0.608,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "jefe",
+        "start": 17.63,
+        "end": 17.81,
+        "score": 0.858,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "del",
+        "start": 17.85,
+        "end": 17.97,
+        "score": 0.689,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Estado",
+        "start": 18.01,
+        "end": 18.31,
+        "score": 0.856,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ha",
+        "start": 18.37,
+        "end": 18.45,
+        "score": 0.724,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "saludado",
+        "start": 18.49,
+        "end": 18.871,
+        "score": 0.859,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "a",
+        "start": 18.911,
+        "end": 18.951,
+        "score": 0.486,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "las",
+        "start": 18.991,
+        "end": 19.071,
+        "score": 0.834,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "autoridades",
+        "start": 19.131,
+        "end": 19.591,
+        "score": 0.765,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "presentes.",
+        "start": 19.651,
+        "end": 20.071,
+        "score": 0.876,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.1481710480643319,
+    "speaker": "SPEAKER_03"
   },
   {
-    "video_id": "video_061b2843",
-    "inicio": 52.478,
-    "fin": 65.236,
-    "ponente": "SPEAKER_01",
-    "duracion": 12.758
+    "start": 20.692,
+    "end": 27.477,
+    "text": "Entre ellos, el ministro de la Presidencia, Justicia y Relaciones con las Cortes, y miembros de las mesas del Congreso y del Senado.",
+    "words": [
+      {
+        "word": "Entre",
+        "start": 20.692,
+        "end": 20.892,
+        "score": 0.947,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ellos,",
+        "start": 20.932,
+        "end": 21.192,
+        "score": 0.929,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 21.572,
+        "end": 21.653,
+        "score": 0.993,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ministro",
+        "start": 21.713,
+        "end": 22.013,
+        "score": 0.921,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 22.053,
+        "end": 22.113,
+        "score": 0.822,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 22.153,
+        "end": 22.213,
+        "score": 0.843,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Presidencia,",
+        "start": 22.273,
+        "end": 22.873,
+        "score": 0.638,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Justicia",
+        "start": 22.993,
+        "end": 23.394,
+        "score": 0.833,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "y",
+        "start": 23.414,
+        "end": 23.434,
+        "score": 0.004,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Relaciones",
+        "start": 23.674,
+        "end": 24.114,
+        "score": 0.894,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "con",
+        "start": 24.174,
+        "end": 24.254,
+        "score": 0.938,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "las",
+        "start": 24.294,
+        "end": 24.394,
+        "score": 0.944,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Cortes,",
+        "start": 24.454,
+        "end": 24.735,
+        "score": 0.979,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "y",
+        "start": 24.755,
+        "end": 24.775,
+        "score": 0.035,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "miembros",
+        "start": 25.215,
+        "end": 25.515,
+        "score": 0.766,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 25.555,
+        "end": 25.635,
+        "score": 0.708,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "las",
+        "start": 25.675,
+        "end": 25.775,
+        "score": 0.847,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "mesas",
+        "start": 25.835,
+        "end": 26.076,
+        "score": 0.835,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "del",
+        "start": 26.196,
+        "end": 26.316,
+        "score": 0.972,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Congreso",
+        "start": 26.376,
+        "end": 26.756,
+        "score": 0.892,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "y",
+        "start": 26.776,
+        "end": 26.796,
+        "score": 0.018,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "del",
+        "start": 26.996,
+        "end": 27.116,
+        "score": 0.852,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Senado.",
+        "start": 27.156,
+        "end": 27.477,
+        "score": 0.681,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.1481710480643319,
+    "speaker": "SPEAKER_03"
   },
   {
-    "video_id": "video_061b2843",
-    "inicio": 65.438,
-    "fin": 71.345,
-    "ponente": "SPEAKER_03",
-    "duracion": 5.907
+    "start": 28.077,
+    "end": 33.838,
+    "text": " Ya en el Salón Gótico, el presidente del Senado ha señalado la importancia de trabajar desde el ámbito europeo.",
+    "words": [
+      {
+        "word": "Ya",
+        "start": 28.077,
+        "end": 28.197,
+        "score": 0.244
+      },
+      {
+        "word": "en",
+        "start": 28.357,
+        "end": 28.637,
+        "score": 0.341,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 28.657,
+        "end": 28.717,
+        "score": 0.218,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Salón",
+        "start": 28.777,
+        "end": 28.997,
+        "score": 0.43,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Gótico,",
+        "start": 29.017,
+        "end": 29.317,
+        "score": 0.657,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 29.697,
+        "end": 29.777,
+        "score": 0.78,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "presidente",
+        "start": 29.837,
+        "end": 30.277,
+        "score": 0.828,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "del",
+        "start": 30.337,
+        "end": 30.457,
+        "score": 0.744,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Senado",
+        "start": 30.497,
+        "end": 30.798,
+        "score": 0.591,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ha",
+        "start": 30.958,
+        "end": 31.038,
+        "score": 0.833,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "señalado",
+        "start": 31.098,
+        "end": 31.458,
+        "score": 0.908,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 31.518,
+        "end": 31.578,
+        "score": 0.808,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "importancia",
+        "start": 31.638,
+        "end": 32.158,
+        "score": 0.776,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 32.218,
+        "end": 32.278,
+        "score": 0.964,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "trabajar",
+        "start": 32.358,
+        "end": 32.678,
+        "score": 0.846,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "desde",
+        "start": 32.858,
+        "end": 33.018,
+        "score": 0.872,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 33.038,
+        "end": 33.118,
+        "score": 0.427,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ámbito",
+        "start": 33.158,
+        "end": 33.418,
+        "score": 0.954,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "europeo.",
+        "start": 33.498,
+        "end": 33.838,
+        "score": 0.926,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.1266479764068336,
+    "speaker": "SPEAKER_03"
   },
   {
-    "video_id": "video_061b2843",
-    "inicio": 71.53,
-    "fin": 74.112,
-    "ponente": "SPEAKER_00",
-    "duracion": 2.582
+    "start": 34.078,
+    "end": 37.419,
+    "text": "Los parlamentos han contribuido a desarrollar el futuro común de la Unión.",
+    "words": [
+      {
+        "word": "Los",
+        "start": 34.078,
+        "end": 34.178,
+        "score": 0.888,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "parlamentos",
+        "start": 34.258,
+        "end": 34.778,
+        "score": 0.8,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "han",
+        "start": 34.838,
+        "end": 34.938,
+        "score": 0.773,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "contribuido",
+        "start": 34.998,
+        "end": 35.499,
+        "score": 0.77,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "a",
+        "start": 35.559,
+        "end": 35.599,
+        "score": 0.499,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "desarrollar",
+        "start": 35.659,
+        "end": 36.179,
+        "score": 0.858,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "el",
+        "start": 36.199,
+        "end": 36.339,
+        "score": 0.287,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "futuro",
+        "start": 36.399,
+        "end": 36.659,
+        "score": 0.97,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "común",
+        "start": 36.739,
+        "end": 36.959,
+        "score": 0.932,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "de",
+        "start": 36.999,
+        "end": 37.079,
+        "score": 0.615,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "la",
+        "start": 37.099,
+        "end": 37.159,
+        "score": 0.901,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "Unión.",
+        "start": 37.199,
+        "end": 37.419,
+        "score": 0.839,
+        "speaker": "SPEAKER_02"
+      }
+    ],
+    "avg_logprob": -0.1266479764068336,
+    "speaker": "SPEAKER_02"
   },
   {
-    "video_id": "video_061b2843",
-    "inicio": 75.327,
-    "fin": 87.832,
-    "ponente": "SPEAKER_00",
-    "duracion": 12.505
+    "start": 38.139,
+    "end": 44.14,
+    "text": "La democracia parlamentaria es una de las señas de identidad que mejor definen a los países de la Unión Europea.",
+    "words": [
+      {
+        "word": "La",
+        "start": 38.139,
+        "end": 38.199,
+        "score": 0.981,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "democracia",
+        "start": 38.259,
+        "end": 38.759,
+        "score": 0.771,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "parlamentaria",
+        "start": 38.839,
+        "end": 39.419,
+        "score": 0.892,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "es",
+        "start": 39.439,
+        "end": 39.519,
+        "score": 0.554,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "una",
+        "start": 39.579,
+        "end": 39.679,
+        "score": 0.926,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "de",
+        "start": 39.719,
+        "end": 39.779,
+        "score": 0.773,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "las",
+        "start": 39.819,
+        "end": 39.899,
+        "score": 0.928,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "señas",
+        "start": 39.959,
+        "end": 40.219,
+        "score": 0.869,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "de",
+        "start": 40.239,
+        "end": 40.3,
+        "score": 0.752,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "identidad",
+        "start": 40.36,
+        "end": 40.72,
+        "score": 0.829,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "que",
+        "start": 40.78,
+        "end": 40.88,
+        "score": 0.795,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "mejor",
+        "start": 40.96,
+        "end": 41.18,
+        "score": 0.843,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "definen",
+        "start": 41.26,
+        "end": 41.66,
+        "score": 0.863,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "a",
+        "start": 42.18,
+        "end": 42.22,
+        "score": 0.986,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "los",
+        "start": 42.26,
+        "end": 42.38,
+        "score": 0.834,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "países",
+        "start": 42.46,
+        "end": 42.86,
+        "score": 0.831,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "de",
+        "start": 42.94,
+        "end": 43.02,
+        "score": 0.659,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "la",
+        "start": 43.06,
+        "end": 43.14,
+        "score": 0.756,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "Unión",
+        "start": 43.18,
+        "end": 43.42,
+        "score": 0.811,
+        "speaker": "SPEAKER_02"
+      },
+      {
+        "word": "Europea.",
+        "start": 43.7,
+        "end": 44.14,
+        "score": 0.867,
+        "speaker": "SPEAKER_02"
+      }
+    ],
+    "avg_logprob": -0.1266479764068336,
+    "speaker": "SPEAKER_02"
   },
   {
-    "video_id": "video_061b2843",
-    "inicio": 88.523,
-    "fin": 120.991,
-    "ponente": "SPEAKER_03",
-    "duracion": 32.468
+    "start": 44.52,
+    "end": 52.282,
+    "text": "Por su parte, la presidenta del Congreso ha destacado el diálogo como herramienta para posibilitar libertad, justicia y bienestar en la sociedad.",
+    "words": [
+      {
+        "word": "Por",
+        "start": 44.52,
+        "end": 44.62,
+        "score": 0.922,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "su",
+        "start": 44.66,
+        "end": 44.74,
+        "score": 0.899,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "parte,",
+        "start": 44.8,
+        "end": 45.06,
+        "score": 0.872,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 45.341,
+        "end": 45.401,
+        "score": 0.814,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "presidenta",
+        "start": 45.441,
+        "end": 45.841,
+        "score": 0.906,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "del",
+        "start": 45.881,
+        "end": 46.001,
+        "score": 0.627,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Congreso",
+        "start": 46.061,
+        "end": 46.441,
+        "score": 0.92,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ha",
+        "start": 46.501,
+        "end": 46.561,
+        "score": 0.788,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "destacado",
+        "start": 46.601,
+        "end": 47.081,
+        "score": 0.877,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 47.121,
+        "end": 47.201,
+        "score": 0.926,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "diálogo",
+        "start": 47.261,
+        "end": 47.621,
+        "score": 0.872,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "como",
+        "start": 47.901,
+        "end": 48.041,
+        "score": 0.878,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "herramienta",
+        "start": 48.081,
+        "end": 48.541,
+        "score": 0.893,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "para",
+        "start": 48.621,
+        "end": 48.801,
+        "score": 0.584,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "posibilitar",
+        "start": 48.881,
+        "end": 49.461,
+        "score": 0.888,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "libertad,",
+        "start": 49.661,
+        "end": 50.062,
+        "score": 0.943,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "justicia",
+        "start": 50.422,
+        "end": 50.882,
+        "score": 0.829,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "y",
+        "start": 50.902,
+        "end": 50.922,
+        "score": 0.006,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "bienestar",
+        "start": 51.182,
+        "end": 51.602,
+        "score": 0.763,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "en",
+        "start": 51.742,
+        "end": 51.822,
+        "score": 0.75,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 51.862,
+        "end": 51.902,
+        "score": 1.0,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "sociedad.",
+        "start": 51.962,
+        "end": 52.282,
+        "score": 0.79,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.1266479764068336,
+    "speaker": "SPEAKER_03"
   },
   {
-    "video_id": "video_061b2843",
-    "inicio": 120.991,
-    "fin": 122.189,
-    "ponente": "SPEAKER_02",
-    "duracion": 1.198
+    "start": 52.602,
+    "end": 54.363,
+    "text": " Los parlamentos son diálogo.",
+    "words": [
+      {
+        "word": "Los",
+        "start": 52.602,
+        "end": 52.722,
+        "score": 0.861,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "parlamentos",
+        "start": 52.782,
+        "end": 53.303,
+        "score": 0.863,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "son",
+        "start": 53.583,
+        "end": 53.783,
+        "score": 0.792,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "diálogo.",
+        "start": 53.883,
+        "end": 54.363,
+        "score": 0.897,
+        "speaker": "SPEAKER_01"
+      }
+    ],
+    "avg_logprob": -0.16061103975071628,
+    "speaker": "SPEAKER_01"
   },
   {
-    "video_id": "video_061b2843",
-    "inicio": 122.189,
-    "fin": 145.713,
-    "ponente": "SPEAKER_03",
-    "duracion": 23.524
+    "start": 55.144,
+    "end": 59.966,
+    "text": "Hagamos pues del diálogo nuestra gran acción social, política y humana.",
+    "words": [
+      {
+        "word": "Hagamos",
+        "start": 55.144,
+        "end": 55.484,
+        "score": 0.97,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "pues",
+        "start": 55.624,
+        "end": 55.824,
+        "score": 0.875,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "del",
+        "start": 55.924,
+        "end": 56.064,
+        "score": 0.556,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "diálogo",
+        "start": 56.104,
+        "end": 56.524,
+        "score": 0.877,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "nuestra",
+        "start": 56.745,
+        "end": 57.045,
+        "score": 0.801,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "gran",
+        "start": 57.085,
+        "end": 57.265,
+        "score": 0.865,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "acción",
+        "start": 57.325,
+        "end": 57.665,
+        "score": 0.862,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "social,",
+        "start": 57.945,
+        "end": 58.406,
+        "score": 0.802,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "política",
+        "start": 58.686,
+        "end": 59.186,
+        "score": 0.954,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "y",
+        "start": 59.206,
+        "end": 59.226,
+        "score": 0.0,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "humana.",
+        "start": 59.586,
+        "end": 59.966,
+        "score": 0.824,
+        "speaker": "SPEAKER_01"
+      }
+    ],
+    "avg_logprob": -0.16061103975071628,
+    "speaker": "SPEAKER_01"
+  },
+  {
+    "start": 60.887,
+    "end": 65.13,
+    "text": "Enfrentémonos desde el diálogo a los demás retos que tenemos por delante.",
+    "words": [
+      {
+        "word": "Enfrentémonos",
+        "start": 60.887,
+        "end": 61.687,
+        "score": 0.966,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "desde",
+        "start": 62.008,
+        "end": 62.188,
+        "score": 0.887,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "el",
+        "start": 62.208,
+        "end": 62.288,
+        "score": 0.403,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "diálogo",
+        "start": 62.348,
+        "end": 62.728,
+        "score": 0.812,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "a",
+        "start": 62.748,
+        "end": 62.768,
+        "score": 0.0,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "los",
+        "start": 63.068,
+        "end": 63.168,
+        "score": 0.954,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "demás",
+        "start": 63.228,
+        "end": 63.469,
+        "score": 0.969,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "retos",
+        "start": 63.589,
+        "end": 63.849,
+        "score": 0.833,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "que",
+        "start": 63.929,
+        "end": 64.009,
+        "score": 0.88,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "tenemos",
+        "start": 64.089,
+        "end": 64.409,
+        "score": 0.878,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "por",
+        "start": 64.529,
+        "end": 64.629,
+        "score": 0.997,
+        "speaker": "SPEAKER_01"
+      },
+      {
+        "word": "delante.",
+        "start": 64.689,
+        "end": 65.13,
+        "score": 0.977,
+        "speaker": "SPEAKER_01"
+      }
+    ],
+    "avg_logprob": -0.16061103975071628,
+    "speaker": "SPEAKER_01"
+  },
+  {
+    "start": 65.49,
+    "end": 71.233,
+    "text": "Por último, Felipe VI ha puesto en valor el papel de los parlamentos como garantes del espíritu de la democracia.",
+    "words": [
+      {
+        "word": "Por",
+        "start": 65.49,
+        "end": 65.61,
+        "score": 0.778,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "último,",
+        "start": 65.67,
+        "end": 65.95,
+        "score": 0.96,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Felipe",
+        "start": 66.19,
+        "end": 66.871,
+        "score": 0.87,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "VI",
+        "start": 66.891,
+        "end": 66.931,
+        "score": 0.0,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ha",
+        "start": 67.051,
+        "end": 67.131,
+        "score": 0.682,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "puesto",
+        "start": 67.171,
+        "end": 67.411,
+        "score": 0.833,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "en",
+        "start": 67.451,
+        "end": 67.531,
+        "score": 0.715,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "valor",
+        "start": 67.551,
+        "end": 67.791,
+        "score": 0.868,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 67.851,
+        "end": 67.931,
+        "score": 0.843,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "papel",
+        "start": 67.991,
+        "end": 68.211,
+        "score": 0.982,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 68.251,
+        "end": 68.311,
+        "score": 0.784,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "los",
+        "start": 68.351,
+        "end": 68.431,
+        "score": 0.974,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "parlamentos",
+        "start": 68.492,
+        "end": 68.992,
+        "score": 0.937,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "como",
+        "start": 69.312,
+        "end": 69.452,
+        "score": 0.835,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "garantes",
+        "start": 69.532,
+        "end": 69.872,
+        "score": 0.856,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "del",
+        "start": 69.892,
+        "end": 70.032,
+        "score": 0.537,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "espíritu",
+        "start": 70.072,
+        "end": 70.473,
+        "score": 0.809,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 70.533,
+        "end": 70.593,
+        "score": 0.908,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 70.633,
+        "end": 70.693,
+        "score": 0.768,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "democracia.",
+        "start": 70.733,
+        "end": 71.233,
+        "score": 0.891,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.16061103975071628,
+    "speaker": "SPEAKER_03"
+  },
+  {
+    "start": 71.633,
+    "end": 74.095,
+    "text": "La esencia de Europa es la democracia.",
+    "words": [
+      {
+        "word": "La",
+        "start": 71.633,
+        "end": 71.693,
+        "score": 0.931,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "esencia",
+        "start": 71.753,
+        "end": 72.154,
+        "score": 0.779,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "de",
+        "start": 72.174,
+        "end": 72.254,
+        "score": 0.708,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "Europa",
+        "start": 72.294,
+        "end": 72.574,
+        "score": 0.891,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "es",
+        "start": 72.674,
+        "end": 72.774,
+        "score": 0.984,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "la",
+        "start": 73.454,
+        "end": 73.535,
+        "score": 0.916,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "democracia.",
+        "start": 73.575,
+        "end": 74.095,
+        "score": 0.765,
+        "speaker": "SPEAKER_00"
+      }
+    ],
+    "avg_logprob": -0.16061103975071628,
+    "speaker": "SPEAKER_00"
+  },
+  {
+    "start": 75.424,
+    "end": 87.678,
+    "text": " Casi nueve siglos después, rendimos tributo a quienes debatieron y compartieron reflexiones sobre las democracias y el papel de los parlamentos modernos, contribuyendo a asentar las bases de nuestra convivencia.",
+    "words": [
+      {
+        "word": "Casi",
+        "start": 75.424,
+        "end": 75.604,
+        "score": 0.932,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "nueve",
+        "start": 75.644,
+        "end": 75.845,
+        "score": 0.672,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "siglos",
+        "start": 75.905,
+        "end": 76.185,
+        "score": 0.915,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "después,",
+        "start": 76.245,
+        "end": 76.645,
+        "score": 0.744,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "rendimos",
+        "start": 77.566,
+        "end": 77.967,
+        "score": 0.899,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "tributo",
+        "start": 78.027,
+        "end": 78.427,
+        "score": 0.866,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "a",
+        "start": 78.467,
+        "end": 78.507,
+        "score": 0.494,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "quienes",
+        "start": 78.548,
+        "end": 78.768,
+        "score": 0.813,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "debatieron",
+        "start": 78.828,
+        "end": 79.348,
+        "score": 0.881,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "y",
+        "start": 79.408,
+        "end": 79.448,
+        "score": 0.628,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "compartieron",
+        "start": 79.529,
+        "end": 80.189,
+        "score": 0.726,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "reflexiones",
+        "start": 80.229,
+        "end": 80.77,
+        "score": 0.796,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "sobre",
+        "start": 80.85,
+        "end": 81.05,
+        "score": 0.908,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "las",
+        "start": 81.09,
+        "end": 81.17,
+        "score": 0.891,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "democracias",
+        "start": 81.21,
+        "end": 81.791,
+        "score": 0.792,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "y",
+        "start": 81.811,
+        "end": 81.831,
+        "score": 0.0,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "el",
+        "start": 82.512,
+        "end": 82.592,
+        "score": 0.672,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "papel",
+        "start": 82.632,
+        "end": 82.892,
+        "score": 0.924,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "de",
+        "start": 82.932,
+        "end": 82.992,
+        "score": 0.939,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "los",
+        "start": 83.052,
+        "end": 83.153,
+        "score": 0.811,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "parlamentos",
+        "start": 83.213,
+        "end": 83.733,
+        "score": 0.894,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "modernos,",
+        "start": 83.813,
+        "end": 84.274,
+        "score": 0.844,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "contribuyendo",
+        "start": 85.075,
+        "end": 85.715,
+        "score": 0.893,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "a",
+        "start": 85.735,
+        "end": 85.755,
+        "score": 0.02,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "asentar",
+        "start": 85.775,
+        "end": 86.196,
+        "score": 0.884,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "las",
+        "start": 86.256,
+        "end": 86.336,
+        "score": 0.912,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "bases",
+        "start": 86.396,
+        "end": 86.636,
+        "score": 0.849,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "de",
+        "start": 86.696,
+        "end": 86.777,
+        "score": 0.928,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "nuestra",
+        "start": 86.837,
+        "end": 87.097,
+        "score": 0.833,
+        "speaker": "SPEAKER_00"
+      },
+      {
+        "word": "convivencia.",
+        "start": 87.157,
+        "end": 87.678,
+        "score": 0.918,
+        "speaker": "SPEAKER_00"
+      }
+    ],
+    "avg_logprob": -0.1242040958044664,
+    "speaker": "SPEAKER_00"
+  },
+  {
+    "start": 88.617,
+    "end": 91.38,
+    "text": " A lo largo de la cumbre se han desarrollado dos sesiones de trabajo.",
+    "words": [
+      {
+        "word": "A",
+        "start": 88.617,
+        "end": 88.657,
+        "score": 0.5,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "lo",
+        "start": 88.697,
+        "end": 88.757,
+        "score": 0.746,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "largo",
+        "start": 88.777,
+        "end": 88.957,
+        "score": 0.842,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 88.997,
+        "end": 89.057,
+        "score": 0.752,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 89.077,
+        "end": 89.158,
+        "score": 0.498,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "cumbre",
+        "start": 89.218,
+        "end": 89.438,
+        "score": 0.832,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "se",
+        "start": 89.458,
+        "end": 89.498,
+        "score": 0.0,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "han",
+        "start": 89.638,
+        "end": 89.738,
+        "score": 0.902,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "desarrollado",
+        "start": 89.798,
+        "end": 90.239,
+        "score": 0.937,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "dos",
+        "start": 90.259,
+        "end": 90.319,
+        "score": 0.0,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "sesiones",
+        "start": 90.499,
+        "end": 90.879,
+        "score": 0.841,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 90.919,
+        "end": 90.979,
+        "score": 0.946,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "trabajo.",
+        "start": 91.039,
+        "end": 91.38,
+        "score": 0.864,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.14819294934050511,
+    "speaker": "SPEAKER_03"
+  },
+  {
+    "start": 91.9,
+    "end": 97.305,
+    "text": "La primera de ellas, sobre la autonomía estratégica de la Unión Europea ante los nuevos retos para las democracias liberales.",
+    "words": [
+      {
+        "word": "La",
+        "start": 91.9,
+        "end": 91.96,
+        "score": 0.743,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "primera",
+        "start": 92.02,
+        "end": 92.281,
+        "score": 0.878,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 92.301,
+        "end": 92.361,
+        "score": 0.961,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ellas,",
+        "start": 92.421,
+        "end": 92.641,
+        "score": 0.668,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "sobre",
+        "start": 92.661,
+        "end": 93.081,
+        "score": 0.626,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 93.121,
+        "end": 93.161,
+        "score": 0.988,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "autonomía",
+        "start": 93.201,
+        "end": 93.642,
+        "score": 0.762,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "estratégica",
+        "start": 93.662,
+        "end": 94.162,
+        "score": 0.88,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 94.222,
+        "end": 94.302,
+        "score": 0.754,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 94.342,
+        "end": 94.403,
+        "score": 0.82,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Unión",
+        "start": 94.443,
+        "end": 94.603,
+        "score": 0.874,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Europea",
+        "start": 94.643,
+        "end": 94.963,
+        "score": 0.864,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ante",
+        "start": 95.203,
+        "end": 95.383,
+        "score": 0.984,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "los",
+        "start": 95.424,
+        "end": 95.524,
+        "score": 0.852,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "nuevos",
+        "start": 95.564,
+        "end": 95.764,
+        "score": 0.968,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "retos",
+        "start": 95.844,
+        "end": 96.044,
+        "score": 0.917,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "para",
+        "start": 96.144,
+        "end": 96.284,
+        "score": 0.822,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "las",
+        "start": 96.304,
+        "end": 96.384,
+        "score": 0.957,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "democracias",
+        "start": 96.424,
+        "end": 96.845,
+        "score": 0.791,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "liberales.",
+        "start": 96.905,
+        "end": 97.305,
+        "score": 0.936,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.14819294934050511,
+    "speaker": "SPEAKER_03"
+  },
+  {
+    "start": 97.325,
+    "end": 103.912,
+    "text": "Y la segunda, con una reflexión sobre el fortalecimiento de la Unión Europea desde una perspectiva económica y social.",
+    "words": [
+      {
+        "word": "Y",
+        "start": 97.325,
+        "end": 97.345,
+        "score": 0.002,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 97.906,
+        "end": 97.966,
+        "score": 0.887,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "segunda,",
+        "start": 98.026,
+        "end": 98.406,
+        "score": 0.985,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "con",
+        "start": 98.586,
+        "end": 98.687,
+        "score": 0.819,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "una",
+        "start": 98.747,
+        "end": 98.867,
+        "score": 0.769,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "reflexión",
+        "start": 98.927,
+        "end": 99.367,
+        "score": 0.805,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "sobre",
+        "start": 99.387,
+        "end": 99.868,
+        "score": 0.65,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 99.888,
+        "end": 99.948,
+        "score": 0.746,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "fortalecimiento",
+        "start": 99.988,
+        "end": 100.709,
+        "score": 0.943,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 100.769,
+        "end": 100.829,
+        "score": 0.973,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 100.869,
+        "end": 100.929,
+        "score": 0.827,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Unión",
+        "start": 100.969,
+        "end": 101.109,
+        "score": 0.834,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Europea",
+        "start": 101.189,
+        "end": 101.489,
+        "score": 0.816,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "desde",
+        "start": 101.509,
+        "end": 102.07,
+        "score": 0.458,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "una",
+        "start": 102.11,
+        "end": 102.21,
+        "score": 0.666,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "perspectiva",
+        "start": 102.27,
+        "end": 102.75,
+        "score": 0.904,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "económica",
+        "start": 102.851,
+        "end": 103.291,
+        "score": 0.875,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "y",
+        "start": 103.311,
+        "end": 103.331,
+        "score": 0.001,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "social.",
+        "start": 103.591,
+        "end": 103.912,
+        "score": 0.972,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.14819294934050511,
+    "speaker": "SPEAKER_03"
+  },
+  {
+    "start": 104.832,
+    "end": 112.5,
+    "text": "En ellas han participado diferentes presidentes de parlamentos europeos, como el presidente de la Rada Suprema de Ucrania, que intervino por videoconferencia.",
+    "words": [
+      {
+        "word": "En",
+        "start": 104.832,
+        "end": 104.892,
+        "score": 0.726,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ellas",
+        "start": 104.953,
+        "end": 105.133,
+        "score": 0.724,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "han",
+        "start": 105.193,
+        "end": 105.313,
+        "score": 0.474,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "participado",
+        "start": 105.353,
+        "end": 105.853,
+        "score": 0.755,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "diferentes",
+        "start": 105.913,
+        "end": 106.294,
+        "score": 0.849,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "presidentes",
+        "start": 106.354,
+        "end": 106.834,
+        "score": 0.884,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 106.974,
+        "end": 107.075,
+        "score": 0.47,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "parlamentos",
+        "start": 107.135,
+        "end": 107.555,
+        "score": 0.905,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "europeos,",
+        "start": 107.615,
+        "end": 108.015,
+        "score": 0.733,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "como",
+        "start": 108.416,
+        "end": 108.536,
+        "score": 0.846,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 108.576,
+        "end": 108.636,
+        "score": 0.94,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "presidente",
+        "start": 108.676,
+        "end": 109.136,
+        "score": 0.869,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 109.197,
+        "end": 109.257,
+        "score": 0.924,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 109.297,
+        "end": 109.337,
+        "score": 0.982,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Rada",
+        "start": 109.477,
+        "end": 109.657,
+        "score": 0.773,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Suprema",
+        "start": 109.717,
+        "end": 110.057,
+        "score": 0.936,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 110.077,
+        "end": 110.157,
+        "score": 0.544,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Ucrania,",
+        "start": 110.197,
+        "end": 110.578,
+        "score": 0.818,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "que",
+        "start": 110.878,
+        "end": 110.978,
+        "score": 0.796,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "intervino",
+        "start": 111.038,
+        "end": 111.419,
+        "score": 0.96,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "por",
+        "start": 111.479,
+        "end": 111.599,
+        "score": 0.827,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "videoconferencia.",
+        "start": 111.759,
+        "end": 112.5,
+        "score": 0.916,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.14819294934050511,
+    "speaker": "SPEAKER_03"
+  },
+  {
+    "start": 113.737,
+    "end": 120.78,
+    "text": " Las conclusiones se han centrado en los temas de estas sesiones, así como en la cooperación parlamentaria y en el fortalecimiento de la democracia.",
+    "words": [
+      {
+        "word": "Las",
+        "start": 113.737,
+        "end": 113.817,
+        "score": 0.857,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "conclusiones",
+        "start": 113.857,
+        "end": 114.337,
+        "score": 0.925,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "se",
+        "start": 114.357,
+        "end": 114.417,
+        "score": 0.756,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "han",
+        "start": 114.457,
+        "end": 114.537,
+        "score": 0.919,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "centrado",
+        "start": 114.597,
+        "end": 114.978,
+        "score": 0.848,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "en",
+        "start": 115.158,
+        "end": 115.218,
+        "score": 0.926,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "los",
+        "start": 115.258,
+        "end": 115.358,
+        "score": 0.969,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "temas",
+        "start": 115.438,
+        "end": 115.618,
+        "score": 0.895,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 115.678,
+        "end": 115.738,
+        "score": 0.747,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "estas",
+        "start": 115.778,
+        "end": 115.938,
+        "score": 0.749,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "sesiones,",
+        "start": 115.978,
+        "end": 116.378,
+        "score": 0.849,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "así",
+        "start": 116.758,
+        "end": 116.939,
+        "score": 0.852,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "como",
+        "start": 116.999,
+        "end": 117.159,
+        "score": 0.19,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "en",
+        "start": 117.179,
+        "end": 117.219,
+        "score": 0.348,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 117.259,
+        "end": 117.319,
+        "score": 0.739,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "cooperación",
+        "start": 117.379,
+        "end": 117.899,
+        "score": 0.855,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "parlamentaria",
+        "start": 118.019,
+        "end": 118.659,
+        "score": 0.884,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "y",
+        "start": 118.679,
+        "end": 118.699,
+        "score": 0.005,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "en",
+        "start": 119.019,
+        "end": 119.08,
+        "score": 0.87,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 119.1,
+        "end": 119.18,
+        "score": 0.774,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "fortalecimiento",
+        "start": 119.24,
+        "end": 119.94,
+        "score": 0.925,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 120.04,
+        "end": 120.12,
+        "score": 0.996,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 120.18,
+        "end": 120.24,
+        "score": 0.948,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "democracia.",
+        "start": 120.3,
+        "end": 120.78,
+        "score": 0.947,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.16888707581132945,
+    "speaker": "SPEAKER_03"
+  },
+  {
+    "start": 122.301,
+    "end": 128.424,
+    "text": "Antes de la conferencia, el domingo 21 ha tenido lugar la Cumbre de Mujeres Presidentas de Parlamentos de la Unión Europea.",
+    "words": [
+      {
+        "word": "Antes",
+        "start": 122.301,
+        "end": 122.481,
+        "score": 0.923,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 122.521,
+        "end": 122.581,
+        "score": 0.924,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 122.621,
+        "end": 122.681,
+        "score": 0.748,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "conferencia,",
+        "start": 122.721,
+        "end": 123.221,
+        "score": 0.846,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 123.241,
+        "end": 123.281,
+        "score": 0.012,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "domingo",
+        "start": 123.602,
+        "end": 123.842,
+        "score": 0.728,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "21",
+        "start": 123.862,
+        "end": 124.382,
+        "score": 0.717,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ha",
+        "start": 124.542,
+        "end": 124.622,
+        "score": 0.77,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "tenido",
+        "start": 124.662,
+        "end": 124.882,
+        "score": 0.916,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "lugar",
+        "start": 124.942,
+        "end": 125.142,
+        "score": 0.883,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 125.162,
+        "end": 125.202,
+        "score": 0.0,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Cumbre",
+        "start": 125.482,
+        "end": 125.703,
+        "score": 0.758,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 125.743,
+        "end": 125.823,
+        "score": 0.672,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Mujeres",
+        "start": 125.903,
+        "end": 126.183,
+        "score": 0.805,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Presidentas",
+        "start": 126.263,
+        "end": 126.763,
+        "score": 0.856,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 126.883,
+        "end": 126.983,
+        "score": 0.724,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Parlamentos",
+        "start": 127.043,
+        "end": 127.523,
+        "score": 0.945,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 127.703,
+        "end": 127.764,
+        "score": 0.98,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "la",
+        "start": 127.804,
+        "end": 127.844,
+        "score": 0.986,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Unión",
+        "start": 127.884,
+        "end": 128.024,
+        "score": 0.864,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "Europea.",
+        "start": 128.084,
+        "end": 128.424,
+        "score": 0.89,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.16888707581132945,
+    "speaker": "SPEAKER_03"
+  },
+  {
+    "start": 129.184,
+    "end": 137.008,
+    "text": "Como conclusión se ha adoptado una declaración conjunta donde se destaca el papel fundamental de los parlamentos en defensa de los derechos de las mujeres.",
+    "words": [
+      {
+        "word": "Como",
+        "start": 129.184,
+        "end": 129.344,
+        "score": 0.803,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "conclusión",
+        "start": 129.404,
+        "end": 129.784,
+        "score": 0.895,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "se",
+        "start": 130.025,
+        "end": 130.105,
+        "score": 0.725,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ha",
+        "start": 130.125,
+        "end": 130.205,
+        "score": 0.634,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "adoptado",
+        "start": 130.225,
+        "end": 130.645,
+        "score": 0.541,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "una",
+        "start": 130.685,
+        "end": 130.785,
+        "score": 0.837,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "declaración",
+        "start": 130.825,
+        "end": 131.345,
+        "score": 0.899,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "conjunta",
+        "start": 131.465,
+        "end": 131.885,
+        "score": 0.897,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "donde",
+        "start": 131.905,
+        "end": 132.446,
+        "score": 0.526,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "se",
+        "start": 132.486,
+        "end": 132.586,
+        "score": 0.52,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "destaca",
+        "start": 132.626,
+        "end": 132.946,
+        "score": 0.819,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 132.986,
+        "end": 133.046,
+        "score": 0.762,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "papel",
+        "start": 133.106,
+        "end": 133.326,
+        "score": 0.827,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "fundamental",
+        "start": 133.466,
+        "end": 133.986,
+        "score": 0.916,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 134.006,
+        "end": 134.046,
+        "score": 0.002,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "los",
+        "start": 134.467,
+        "end": 134.547,
+        "score": 0.893,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "parlamentos",
+        "start": 134.627,
+        "end": 135.107,
+        "score": 0.905,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "en",
+        "start": 135.307,
+        "end": 135.387,
+        "score": 0.852,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "defensa",
+        "start": 135.447,
+        "end": 135.787,
+        "score": 0.91,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 135.827,
+        "end": 135.887,
+        "score": 0.925,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "los",
+        "start": 135.947,
+        "end": 136.027,
+        "score": 0.904,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "derechos",
+        "start": 136.087,
+        "end": 136.367,
+        "score": 0.954,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 136.448,
+        "end": 136.528,
+        "score": 0.87,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "las",
+        "start": 136.588,
+        "end": 136.708,
+        "score": 0.515,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "mujeres.",
+        "start": 136.748,
+        "end": 137.008,
+        "score": 0.732,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.16888707581132945,
+    "speaker": "SPEAKER_03"
+  },
+  {
+    "start": 138.253,
+    "end": 145.627,
+    "text": " A ellas se han incorporado presidentes de parlamentos al suscribir el anexo en favor de unos parlamentos con mayor perspectiva de género.",
+    "words": [
+      {
+        "word": "A",
+        "start": 138.253,
+        "end": 138.313,
+        "score": 0.8,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "ellas",
+        "start": 138.353,
+        "end": 138.554,
+        "score": 0.747,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "se",
+        "start": 138.574,
+        "end": 138.634,
+        "score": 0.74,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "han",
+        "start": 138.674,
+        "end": 138.754,
+        "score": 0.932,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "incorporado",
+        "start": 138.814,
+        "end": 139.315,
+        "score": 0.898,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "presidentes",
+        "start": 139.335,
+        "end": 139.936,
+        "score": 0.748,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 139.996,
+        "end": 140.097,
+        "score": 0.601,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "parlamentos",
+        "start": 140.157,
+        "end": 140.638,
+        "score": 0.99,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "al",
+        "start": 140.658,
+        "end": 140.698,
+        "score": 0.0,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "suscribir",
+        "start": 141.159,
+        "end": 141.639,
+        "score": 0.846,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "el",
+        "start": 141.68,
+        "end": 141.76,
+        "score": 0.898,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "anexo",
+        "start": 141.82,
+        "end": 142.16,
+        "score": 0.948,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "en",
+        "start": 142.18,
+        "end": 142.22,
+        "score": 0.0,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "favor",
+        "start": 142.601,
+        "end": 142.862,
+        "score": 0.859,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 142.922,
+        "end": 142.982,
+        "score": 0.763,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "unos",
+        "start": 143.042,
+        "end": 143.182,
+        "score": 0.914,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "parlamentos",
+        "start": 143.262,
+        "end": 143.783,
+        "score": 0.921,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "con",
+        "start": 143.924,
+        "end": 144.044,
+        "score": 0.876,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "mayor",
+        "start": 144.104,
+        "end": 144.324,
+        "score": 0.949,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "perspectiva",
+        "start": 144.465,
+        "end": 145.026,
+        "score": 0.863,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "de",
+        "start": 145.206,
+        "end": 145.286,
+        "score": 0.734,
+        "speaker": "SPEAKER_03"
+      },
+      {
+        "word": "género.",
+        "start": 145.366,
+        "end": 145.627,
+        "score": 0.856,
+        "speaker": "SPEAKER_03"
+      }
+    ],
+    "avg_logprob": -0.15881111341364243,
+    "speaker": "SPEAKER_03"
   }
 ]
