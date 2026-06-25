@@ -1,0 +1,149 @@
+[
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 3.997,
+    "fin": 4.03,
+    "ponente": "SPEAKER_00",
+    "duracion": 0.033
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 4.03,
+    "fin": 8.198,
+    "ponente": "SPEAKER_01",
+    "duracion": 4.168
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 4.115,
+    "fin": 5.414,
+    "ponente": "SPEAKER_00",
+    "duracion": 1.299
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 8.722,
+    "fin": 14.763,
+    "ponente": "SPEAKER_01",
+    "duracion": 6.041
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 16.636,
+    "fin": 94.008,
+    "ponente": "SPEAKER_01",
+    "duracion": 77.372
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 95.51,
+    "fin": 97.231,
+    "ponente": "SPEAKER_01",
+    "duracion": 1.721
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 98.277,
+    "fin": 106.04,
+    "ponente": "SPEAKER_01",
+    "duracion": 7.763
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 107.322,
+    "fin": 146.084,
+    "ponente": "SPEAKER_01",
+    "duracion": 38.762
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 147.755,
+    "fin": 151.012,
+    "ponente": "SPEAKER_01",
+    "duracion": 3.257
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 151.012,
+    "fin": 152.058,
+    "ponente": "SPEAKER_02",
+    "duracion": 1.046
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 152.058,
+    "fin": 152.075,
+    "ponente": "SPEAKER_01",
+    "duracion": 0.017
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 153.425,
+    "fin": 167.971,
+    "ponente": "SPEAKER_02",
+    "duracion": 14.546
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 167.414,
+    "fin": 167.819,
+    "ponente": "SPEAKER_00",
+    "duracion": 0.405
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 168.258,
+    "fin": 281.033,
+    "ponente": "SPEAKER_02",
+    "duracion": 112.775
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 281.033,
+    "fin": 281.624,
+    "ponente": "SPEAKER_00",
+    "duracion": 0.591
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 281.624,
+    "fin": 281.877,
+    "ponente": "SPEAKER_02",
+    "duracion": 0.253
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 281.877,
+    "fin": 281.911,
+    "ponente": "SPEAKER_00",
+    "duracion": 0.034
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 281.911,
+    "fin": 282.029,
+    "ponente": "SPEAKER_02",
+    "duracion": 0.118
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 282.029,
+    "fin": 290.568,
+    "ponente": "SPEAKER_00",
+    "duracion": 8.539
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 290.568,
+    "fin": 296.373,
+    "ponente": "SPEAKER_02",
+    "duracion": 5.805
+  },
+  {
+    "video_id": "video_25bc77db",
+    "inicio": 297.757,
+    "fin": 316.64,
+    "ponente": "SPEAKER_02",
+    "duracion": 18.883
+  }
+]

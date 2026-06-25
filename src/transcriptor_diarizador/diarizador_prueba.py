@@ -50,7 +50,7 @@ def ejecutar_diarizacion(ruta_audio: Path, video_id: str) -> list:
     try:
         pipeline = Pipeline.from_pretrained(
             "pyannote/speaker-diarization-3.1",
-            use_auth_token=HF_TOKEN
+            token=HF_TOKEN
         )
         
         dispositivo = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -69,6 +69,12 @@ def ejecutar_diarizacion(ruta_audio: Path, video_id: str) -> list:
         
         print("Ejecutando diarizacion (esto puede tardar)...")
         diarization = pipeline(audio_in_memory)
+        
+        # --- PARCHE DE COMPATIBILIDAD PYANNOTE ---
+        # Si devuelve un objeto 'DiarizeOutput', extraemos la anotación real
+        if hasattr(diarization, "speaker_diarization"):
+            diarization = diarization.speaker_diarization
+        # -----------------------------------------
         
         segmentos_crudos = []
         for segmento, _, ponente in diarization.itertracks(yield_label=True):
