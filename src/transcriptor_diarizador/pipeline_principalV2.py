@@ -5,6 +5,7 @@ from pathlib import Path
 
 warnings.filterwarnings("ignore")
 
+# Rutas absolutas corregidas para que funcione perfectamente con 'python -m'
 from src.transcriptor_diarizador.procesador import configurar_ffmpeg_local, descargar_audio_youtube, transcribir_y_diarizar
 from src.transcriptor_diarizador.fusionador_pruebaV2 import fusionar_datos_para_rag
 from src.transcriptor_diarizador.cargador_chroma import subir_datos_a_chroma
@@ -28,8 +29,8 @@ def obtener_metadatos_youtube(url: str):
         return "Sesión Parlamentaria", "1970-01-01"
 
 
-def ejecutar_pipeline_completo(url_video: str):
-    """Función principal llamada desde FastAPI o desde __main__."""
+def ejecutar_pipeline_completo(url_video: str, callback_progreso=None):
+    """Función principal llamada desde FastAPI o desde __main__ con soporte para progreso."""
 
     video_id = "video_" + hashlib.sha1(url_video.encode("utf-8")).hexdigest()[:8]
     titulo_real, fecha_publicacion = obtener_metadatos_youtube(url_video)
@@ -40,16 +41,26 @@ def ejecutar_pipeline_completo(url_video: str):
     print(f"FECHA:   {fecha_publicacion}")
     print(f"{'='*45}")
 
+    # 1. AVISO: Inicio (10%)
+    if callback_progreso:
+        callback_progreso({"video_id": video_id, "progreso": 10, "estado": "Descargando audio de YouTube..."})
+
     ruta_script = Path(__file__).parent
     dir_audio = ruta_script / "data_prueba"
 
     # --- FASE 1: DESCARGA ---
     audio_temporal = descargar_audio_youtube(url_video, dir_audio)
     if not audio_temporal or not audio_temporal.exists():
+        if callback_progreso:
+            callback_progreso({"video_id": video_id, "progreso": -1, "estado": "Error crítico en la descarga del audio"})
         raise Exception("Falló la descarga del audio.")
 
     audio_path = dir_audio / f"{video_id}.wav"
     audio_temporal.replace(audio_path)
+
+    # 2. AVISO: Transcripción (30%)
+    if callback_progreso:
+        callback_progreso({"video_id": video_id, "progreso": 30, "estado": "Transcribiendo y separando voces (Esto tardará un poco)..."})
 
     # --- FASE 2+3: TRANSCRIPCIÓN + DIARIZACIÓN INTEGRADA ---
     print("\n--- FASE 2+3: TRANSCRIPCIÓN Y DIARIZACIÓN (WhisperX + PyAnnote) ---")
@@ -62,6 +73,10 @@ def ejecutar_pipeline_completo(url_video: str):
     with open(ruta_segmentos_crudos, "w", encoding="utf-8") as f:
         json.dump(segmentos, f, indent=2, ensure_ascii=False)
     print(f"Segmentos crudos guardados en: {ruta_segmentos_crudos}")
+
+    # 3. AVISO: Procesamiento de datos (70%)
+    if callback_progreso:
+        callback_progreso({"video_id": video_id, "progreso": 70, "estado": "Generando fragmentos inteligentes para el buscador RAG..."})
 
     # --- FASE 4: CHUNKING + METADATOS ---
     print("\n--- FASE 4: GENERANDO CHUNKS PARA RAG ---")
@@ -79,12 +94,20 @@ def ejecutar_pipeline_completo(url_video: str):
     )
     print(f"Chunks generados: {len(chunks)} — guardados en: {ruta_json_final}")
 
+    # 4. AVISO: Base de datos (90%)
+    if callback_progreso:
+        callback_progreso({"video_id": video_id, "progreso": 90, "estado": "Guardando información procesada en ChromaDB..."})
+
     # --- FASE 5: SUBIDA A CHROMADB ---
     print("\n--- FASE 5: SUBIDA A CHROMA DB ---")
     if ruta_json_final.exists():
         subir_datos_a_chroma(ruta_json_final)
     else:
         print("Error: no se encontró el JSON final.")
+
+    # 5. AVISO: Completado (100%)
+    if callback_progreso:
+        callback_progreso({"video_id": video_id, "progreso": 100, "estado": "¡Procesamiento completado con éxito!"})
 
     print("\nPIPELINE COMPLETADO AL 100%.")
     return video_id, str(ruta_json_final), titulo_real
@@ -97,12 +120,20 @@ def ejecutar_pipeline_lote(lista_urls: list):
     resultados_exitosos = []
     videos_fallidos = []
 
+    # --- NUESTRA FUNCIÓN ESPÍA PARA VER LOS LOGS EN LA TERMINAL ---
+    def mi_impresora_de_progreso(datos):
+        print(f"  ➜ [ESTADO WEB] Vídeo: {datos['video_id']} | Progreso: {datos['progreso']}% | {datos['estado']}")
+    # --------------------------------------------------------------
+
     for indice, url in enumerate(lista_urls, start=1):
         print(f"\n[VÍDEO {indice}/{len(lista_urls)}] {url}")
         try:
-            video_id, ruta_json, titulo = ejecutar_pipeline_completo(url)
+            # Pasamos la función espía para que nos imprima en vivo
+            video_id, ruta_json, titulo = ejecutar_pipeline_completo(url, callback_progreso=mi_impresora_de_progreso)
+            
             resultados_exitosos.append({"url": url, "video_id": video_id, "titulo": titulo, "ruta_json": ruta_json})
             print(f"[VÍDEO {indice}/{len(lista_urls)}] Completado.")
+            
         except Exception as e:
             print(f"[VÍDEO {indice}/{len(lista_urls)}] ERROR: {e}. Saltando al siguiente.")
             videos_fallidos.append({"url": url, "error": str(e)})
@@ -120,7 +151,6 @@ def ejecutar_pipeline_lote(lista_urls: list):
 
 if __name__ == "__main__":
     mis_videos = [
-        "https://youtu.be/Yz1OxfXwdr0?si=US3K_HiWMYn9KrCW",
-        "https://www.youtube.com/watch?v=RerhvFiQIYI",
+        "https://www.youtube.com/watch?v=qlTJyCRe76Y"
     ]
     ejecutar_pipeline_lote(mis_videos)
