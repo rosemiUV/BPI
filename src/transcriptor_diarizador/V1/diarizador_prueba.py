@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 # --- INYECTAR FFMPEG ---
 def inyectar_ffmpeg():
-    ruta_script = Path(__file__).parent
+    ruta_script = Path(__file__).parent.parent
     dir_tools = ruta_script / "tools_transcripcion"
     if str(dir_tools) not in os.environ.get("PATH", ""):
         os.environ["PATH"] = str(dir_tools) + os.pathsep + os.environ.get("PATH", "")

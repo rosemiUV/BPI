@@ -10,7 +10,7 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 
 def configurar_ffmpeg_local() -> str:
     """Obtiene la ruta a la carpeta local tools_transcripcion y la inyecta en el PATH."""
-    ruta_script = Path(__file__).parent
+    ruta_script = Path(__file__).parent.parent
     dir_tools = ruta_script / "tools_transcripcion"
     dir_tools.mkdir(parents=True, exist_ok=True)
     
