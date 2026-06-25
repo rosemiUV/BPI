@@ -1,0 +1,23 @@
+[
+  {
+    "video_id": "video_8b833961",
+    "inicio": 0.605,
+    "fin": 45.627,
+    "ponente": "SPEAKER_01",
+    "duracion": 45.022
+  },
+  {
+    "video_id": "video_8b833961",
+    "inicio": 45.796,
+    "fin": 69.016,
+    "ponente": "SPEAKER_00",
+    "duracion": 23.22
+  },
+  {
+    "video_id": "video_8b833961",
+    "inicio": 69.016,
+    "fin": 80.356,
+    "ponente": "SPEAKER_01",
+    "duracion": 11.34
+  }
+]

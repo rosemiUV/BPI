@@ -49,41 +49,19 @@ def get_sessions():
         return []
 
 @router.post('/search', response_model=SearchResponse)
-async def perform_search(request: SearchRequest):
+def perform_search(request: SearchRequest):
     """
-    Recibe la pregunta del usuario y devuelve el JSON simulado.
-    En la Fase 2, aquí importaremos las funciones de tus compañeros (ChromaDB + LLM).
+    Recibe la pregunta del usuario y busca en ChromaDB y llama a Llama-3.
     """
-
-    # Simulamos el teimpo que tardaría el LLM y ChromaDB en pensar
-    await asyncio.sleep(1.5)
-
-    # Construimos el Contrato de Datos (Mock)
-    mock_data = {
-        'pregunta': request.pregunta,
-        'respuesta_llm': 'El PSOE propone debatir una nueva ley de vivienda que incluye poner un tope a los alquileres...',
-        'fuentes_top_k': [
-            {
-                'ponente': 'SPEAKER_00',
-                'texto': 'Señorías, pasamos a debatir la nueva ley...',
-                'enlace_video': 'https://www.youtube.com/watch?v=kBezQQVs8Ug&t=10'
-            },
-
-            {
-                'ponente': 'SPEAKER_00',
-                'texto': 'Señorías, pasamos a debatir la nueva ley 2...',
-                'enlace_video': 'https://www.youtube.com/watch?v=Pihy5At3Q60&t=10'
-            },
-
-            {
-                'ponente': 'SPEAKER_00',
-                'texto': 'Señorías, pasamos a debatir la nueva ley 3...',
-                'enlace_video': 'https://www.youtube.com/watch?v=LZPLBSRnxSY&t=10'
-            }
-        ]
-    }
-
-    return mock_data
+    from src.motor_busqueda.pipeline_rag import buscar_nube
+    
+    try:
+        # Realizamos la búsqueda real en ChromaDB y llamamos a Llama-3 en la nube (Groq)
+        resultados = buscar_nube(pregunta=request.pregunta, video_id=request.id_sesion)
+        return resultados
+    except Exception as e:
+        print(f"Error en la búsqueda RAG: {e}")
+        raise HTTPException(status_code=500, detail="Error realizando la búsqueda.")
 
 
 @router.post('/process')

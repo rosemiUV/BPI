@@ -3,7 +3,7 @@ import os
 import chromadb
 from chromadb.utils import embedding_functions
 import ollama
-
+from groq import Groq
 
 # ─────────────────────────────────────────────────────────────
 # CONECTAR A CHROMADB REMOTA
@@ -17,7 +17,8 @@ ef = embedding_functions.DefaultEmbeddingFunction()
 
 client = chromadb.HttpClient(
     host=CHROMA_HOST,
-    port=CHROMA_PORT
+    port=CHROMA_PORT,
+    ssl=True
 )
 
 collection = client.get_collection(
@@ -115,7 +116,99 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
         fuentes_top_k.append({
             "ponente":      meta["ponente"],
             "texto":        doc,
-            "url_exacta_tiempo": meta["url_exacta_tiempo"],
+            "enlace_video": meta["url_exacta_tiempo"],
+            "inicio":       _segundos_a_mmss(meta["inicio"]),
+            "fin":          _segundos_a_mmss(meta["fin"])
+        })
+
+    return {
+        "pregunta":      pregunta,
+        "prompt":        prompt,
+        "respuesta_llm": respuesta_llm,
+        "fuentes_top_k": fuentes_top_k
+    }
+
+def buscar_nube(pregunta: str, video_id: str, top_k: int = 5) -> dict:
+    """
+    Versión de búsqueda usando la API de Groq en la nube (Llama-3 rápido).
+    Requiere la variable de entorno GROQ_API_KEY.
+    """
+    # 1. Buscar en ChromaDB (igual que en local)
+    resultados = collection.query(
+        query_texts=[pregunta],
+        n_results=top_k,
+        where={"video_id": {"$eq": video_id}},
+        include=["documents", "metadatas"]
+    )
+
+    documentos = resultados["documents"][0]
+    metadatos  = resultados["metadatas"][0]
+
+    if not documentos:
+        return {
+            "pregunta":      pregunta,
+            "prompt":        "",
+            "respuesta_llm": f"No se encontraron fragmentos relevantes en el video '{video_id}'.",
+            "fuentes_top_k": []
+        }
+
+    # 2. Construir el contexto
+    lineas_contexto = []
+    for i, (doc, meta) in enumerate(zip(documentos, metadatos), start=1):
+        t_inicio = _segundos_a_mmss(meta["inicio"])
+        t_fin    = _segundos_a_mmss(meta["fin"])
+        lineas_contexto.append(
+            f"Ponente {i}: ({t_inicio} - {t_fin}): [{doc}]"
+        )
+
+    contexto = "\n".join(lineas_contexto)
+
+    # 3. Construir el prompt
+    prompt = (
+        f"Pregunta del usuario: {pregunta}\n\n"
+        f"Contexto:\n{contexto}"
+    )
+
+    # 4. Llamar a Groq (Llama-3) en la nube
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key:
+        return {
+            "pregunta": pregunta,
+            "prompt": prompt,
+            "respuesta_llm": "Error: Falta la variable de entorno GROQ_API_KEY.",
+            "fuentes_top_k": []
+        }
+
+    cliente_groq = Groq(api_key=api_key)
+    respuesta = cliente_groq.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres un asistente especializado en sesiones parlamentarias. "
+                    "Responde usando ÚNICAMENTE los fragmentos del contexto que se te dan. "
+                    "Si la respuesta no está en los fragmentos, dilo claramente. "
+                    "Sé conciso y cita al ponente cuando sea relevante."
+                )
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        temperature=0.3
+    )
+    
+    respuesta_llm = respuesta.choices[0].message.content
+
+    # 5. Construir las fuentes top-k
+    fuentes_top_k = []
+    for doc, meta in zip(documentos, metadatos):
+        fuentes_top_k.append({
+            "ponente":      meta["ponente"],
+            "texto":        doc,
+            "enlace_video": meta["url_exacta_tiempo"],
             "inicio":       _segundos_a_mmss(meta["inicio"]),
             "fin":          _segundos_a_mmss(meta["fin"])
         })

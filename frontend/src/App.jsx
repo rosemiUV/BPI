@@ -133,14 +133,32 @@ function App() {
 
   // 2.2. Función que convierte un link normal de YT en un link incrustable para el iframe
   const obtenerEnlaceEmbed = (url) => {
-
     try {
-      const urlObj = new URL(url);
-      const videoId = urlObj.searchParams.get('v') || 'TEST';
-      const time = urlObj.searchParams.get('t') || 0;
+      let videoId = 'TEST';
+      let time = 0;
 
-      return `https://www.youtube.com/embed/${videoId}?start=${time}&enablejsapi=1`; // Corregido http por https para evitar bloqueos
+      // Algunas URLs vienen mal formadas como /live/ID&t=10s
+      const cleanUrl = url.replace(/&t=/, '?t='); 
+      const urlObj = new URL(cleanUrl);
 
+      if (urlObj.hostname.includes('youtube.com')) {
+        if (urlObj.pathname.startsWith('/watch')) {
+          videoId = urlObj.searchParams.get('v');
+        } else if (urlObj.pathname.startsWith('/live/')) {
+          videoId = urlObj.pathname.split('/')[2];
+        } else if (urlObj.pathname.startsWith('/embed/')) {
+          videoId = urlObj.pathname.split('/')[2];
+        }
+      } else if (urlObj.hostname === 'youtu.be') {
+        videoId = urlObj.pathname.slice(1);
+      }
+
+      let timeStr = urlObj.searchParams.get('t');
+      if (timeStr) {
+        time = parseInt(timeStr.replace('s', '')) || 0;
+      }
+
+      return `https://www.youtube.com/embed/${videoId}?start=${time}&enablejsapi=1`;
     } catch {
       return url;
     }
@@ -384,15 +402,15 @@ function App() {
                   {/* Feed TikTok */}
                   <div className='flex flex-col md:flex-row gap-6 bg-white p-6 rounded-[2.5rem] shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-black/[0.04]'>
 
-                    <div className='w-full md:w-1/3 flex flex-col gap-3 max-h-[600px] pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
+                    <div className='w-full md:w-1/3 overflow-y-auto flex flex-col gap-3 max-h-[600px] pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
                       <h4 className='text-sm font-bold uppercase tracking-widest text-[#86868b] mb-2 px-2'>Fuentes originales</h4>
                       {resultados.fuentes_top_k.map((fuente, index) => (
                         <button
                           key={index}
                           onClick={() => irAVideo(index)}
-                          className={`text-left p-5 rounded-3xl transition-all duration-300 ${indiceActivo === index
-                            ? 'bg-[#f5f5f7] shadow-inner scale-[1.02] border border-black/[0.04]'
-                            : 'bg-transparent hover:bg-gray-50 opacity-60 hover:opacity-100'
+                          className={`text-left p-3 rounded-3xl transition-all duration-300 ${indiceActivo === index
+                            ? 'bg-[#f5f5f7] shadow-inner border border-black/[0.04]'
+                            : 'bg-transparent scale-[0.98] hover:bg-gray-50 opacity-60 hover:opacity-100'
                             }`}
                         >
                           <span className="flex items-center gap-2 font-semibold text-sm mb-2 text-[#1d1d1f]">
