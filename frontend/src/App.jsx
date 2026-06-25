@@ -1,13 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Search, PlayCircle, ArrowLeft, Loader2, Video, Clock, ChevronRight, Info, Sparkles } from 'lucide-react'
 
-// Mock de sesiones ya guardadas en la BBDD
-const SESIONES_PRECARGADAS = [
-  { id_sesion: 'pleno_01', titulo: 'Debate sobre la Ley de Vivienda', fecha: '17/06/2026', duracion: '2h 15m' },
-  { id_sesion: 'pleno_02', titulo: 'Aprobación de Presupuestos Generales', fecha: '10/05/2026', duracion: '3h 40m' },
-  { id_sesion: 'pleno_03', titulo: 'Comisión de Transición Ecológica', fecha: '02/04/2026', duracion: '1h 50m' }
-]
-
+// Las sesiones se cargarán ahora de forma dinámica desde el backend
 function App() {
 
   // ========================================================
@@ -15,6 +9,26 @@ function App() {
   // ========================================================
   // === ESTADOS GENERALES ===
   const [sesionActiva, setSesionActiva] = useState(null) // null = Pantalla de Inicio
+  const [sesionesGuardadas, setSesionesGuardadas] = useState([])
+  const [cargandoSesiones, setCargandoSesiones] = useState(true)
+
+  // Cargar las sesiones al iniciar la app
+  useEffect(() => {
+    const fetchSesiones = async () => {
+      try {
+        const respuesta = await fetch('http://localhost:8000/api/sessions')
+        if (respuesta.ok) {
+          const datos = await respuesta.json()
+          setSesionesGuardadas(datos)
+        }
+      } catch (error) {
+        console.error("Error al cargar las sesiones desde la BBDD:", error)
+      } finally {
+        setCargandoSesiones(false)
+      }
+    }
+    fetchSesiones()
+  }, [])
 
   // === ESTADOS PANTALLA DE INICIO ===
   const [urlVideo, setUrlVideo] = useState('')
@@ -39,20 +53,40 @@ function App() {
     if (!urlVideo.trim()) return
     setProcesandoUrl(true)
 
-    // Simulamos el tiempo de descarga de Whisper y PyAnnote (Bloques A y B)
-    setTimeout(() => {
-      setProcesandoUrl(false)
-
-      // Activamos una sesion nueva ficticia
-      setSesionActiva({
-        id_sesion: 'sesion_nueva',
-        titulo: 'Nuevo Pleno Procesado',
-        fecha: 'Hoy',
-        duracion: 'Desconocida'
+    try {
+      // Hacemos la peticion POST a nuestro endpoint de FastAPI
+      const respuesta = await fetch('http://localhost:8000/api/process', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          url: urlVideo
+        })
       })
 
-      setUrlVideo('') // Limpiamos el input
-    }, 3000)
+      if (!respuesta.ok) {
+        throw new Error('Error en el servidor al procesar el vídeo')
+      }
+
+      const nuevaSesion = await respuesta.json()
+
+      setSesionActiva(nuevaSesion)
+      // Añadir la nueva sesión a la lista para que aparezca al volver al inicio
+      setSesionesGuardadas(prev => {
+        if (!prev.find(s => s.id_sesion === nuevaSesion.id_sesion)) {
+          return [nuevaSesion, ...prev]
+        }
+        return prev
+      })
+      setUrlVideo('')
+
+    } catch (error) {
+      console.error('Error al procesar el vídeo:', error)
+      alert("Hubo un error al procesar el vídeo. Revisa la terminal donde corre FastAPI para ver los detalles.")
+    } finally {
+      setProcesandoUrl(false)
+    }
   }
 
   const volverAlInicio = () => {
@@ -99,14 +133,32 @@ function App() {
 
   // 2.2. Función que convierte un link normal de YT en un link incrustable para el iframe
   const obtenerEnlaceEmbed = (url) => {
-
     try {
-      const urlObj = new URL(url);
-      const videoId = urlObj.searchParams.get('v') || 'TEST';
-      const time = urlObj.searchParams.get('t') || 0;
+      let videoId = 'TEST';
+      let time = 0;
 
-      return `https://www.youtube.com/embed/${videoId}?start=${time}&enablejsapi=1`; // Corregido http por https para evitar bloqueos
+      // Algunas URLs vienen mal formadas como /live/ID&t=10s
+      const cleanUrl = url.replace(/&t=/, '?t='); 
+      const urlObj = new URL(cleanUrl);
 
+      if (urlObj.hostname.includes('youtube.com')) {
+        if (urlObj.pathname.startsWith('/watch')) {
+          videoId = urlObj.searchParams.get('v');
+        } else if (urlObj.pathname.startsWith('/live/')) {
+          videoId = urlObj.pathname.split('/')[2];
+        } else if (urlObj.pathname.startsWith('/embed/')) {
+          videoId = urlObj.pathname.split('/')[2];
+        }
+      } else if (urlObj.hostname === 'youtu.be') {
+        videoId = urlObj.pathname.slice(1);
+      }
+
+      let timeStr = urlObj.searchParams.get('t');
+      if (timeStr) {
+        time = parseInt(timeStr.replace('s', '')) || 0;
+      }
+
+      return `https://www.youtube.com/embed/${videoId}?start=${time}&enablejsapi=1`;
     } catch {
       return url;
     }
@@ -240,30 +292,41 @@ function App() {
             <h3 className="text-xl font-semibold tracking-tight mb-6 flex items-center gap-2 text-[#1d1d1f]">
               Sesiones archivadas
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {SESIONES_PRECARGADAS.map((sesion) => (
-                <div
-                  key={sesion.id_sesion}
-                  onClick={() => setSesionActiva(sesion)}
-                  className="bg-white p-6 rounded-[2rem] border border-black/[0.04] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-1 cursor-pointer transition-all duration-300 group flex flex-col h-full"
-                >
-                  <div className='flex-1'>
-                    <span className='text-[11px] font-bold uppercase tracking-widest text-blue-600 mb-3 block'>
-                      {sesion.fecha}
-                    </span>
-                    <h4 className="text-lg font-semibold tracking-tight leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">
-                      {sesion.titulo}
-                    </h4>
+            {cargandoSesiones ? (
+              <div className="flex justify-center items-center py-10">
+                <Loader2 className="animate-spin text-blue-500" size={32} />
+                <span className="ml-3 text-[#86868b] font-medium">Conectando con ChromaDB...</span>
+              </div>
+            ) : sesionesGuardadas.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-[2rem] border border-black/[0.04]">
+                <p className="text-[#86868b] font-medium text-lg">No hay sesiones procesadas todavía. ¡Pega un enlace de YouTube arriba para empezar!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {sesionesGuardadas.map((sesion) => (
+                  <div
+                    key={sesion.id_sesion}
+                    onClick={() => setSesionActiva(sesion)}
+                    className="bg-white p-6 rounded-[2rem] border border-black/[0.04] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-1 cursor-pointer transition-all duration-300 group flex flex-col h-full"
+                  >
+                    <div className='flex-1'>
+                      <span className='text-[11px] font-bold uppercase tracking-widest text-blue-600 mb-3 block'>
+                        {sesion.fecha}
+                      </span>
+                      <h4 className="text-lg font-semibold tracking-tight leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">
+                        {sesion.titulo}
+                      </h4>
+                    </div>
+                    <div className="mt-6 flex justify-between items-center text-sm font-medium text-[#86868b]">
+                      <span className="flex items-center gap-1.5"><Clock size={16} /> {sesion.duracion}</span>
+                      <span className="flex items-center text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 duration-300">
+                        Explorar <ChevronRight size={16} />
+                      </span>
+                    </div>
                   </div>
-                  <div className="mt-6 flex justify-between items-center text-sm font-medium text-[#86868b]">
-                    <span className="flex items-center gap-1.5"><Clock size={16} /> {sesion.duracion}</span>
-                    <span className="flex items-center text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 duration-300">
-                      Explorar <ChevronRight size={16} />
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
         </div>
@@ -339,15 +402,15 @@ function App() {
                   {/* Feed TikTok */}
                   <div className='flex flex-col md:flex-row gap-6 bg-white p-6 rounded-[2.5rem] shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-black/[0.04]'>
 
-                    <div className='w-full md:w-1/3 flex flex-col gap-3 max-h-[600px] pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
+                    <div className='w-full md:w-1/3 overflow-y-auto flex flex-col gap-3 max-h-[600px] pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
                       <h4 className='text-sm font-bold uppercase tracking-widest text-[#86868b] mb-2 px-2'>Fuentes originales</h4>
                       {resultados.fuentes_top_k.map((fuente, index) => (
                         <button
                           key={index}
                           onClick={() => irAVideo(index)}
-                          className={`text-left p-5 rounded-3xl transition-all duration-300 ${indiceActivo === index
-                            ? 'bg-[#f5f5f7] shadow-inner scale-[1.02] border border-black/[0.04]'
-                            : 'bg-transparent hover:bg-gray-50 opacity-60 hover:opacity-100'
+                          className={`text-left p-3 rounded-3xl transition-all duration-300 ${indiceActivo === index
+                            ? 'bg-[#f5f5f7] shadow-inner border border-black/[0.04]'
+                            : 'bg-transparent scale-[0.98] hover:bg-gray-50 opacity-60 hover:opacity-100'
                             }`}
                         >
                           <span className="flex items-center gap-2 font-semibold text-sm mb-2 text-[#1d1d1f]">

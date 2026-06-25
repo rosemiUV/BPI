@@ -9,10 +9,10 @@ def fusionar_datos_para_rag(ruta_transcripcion: Path, ruta_diarizacion: Path, ru
         transcripcion = json.load(f)
     with open(ruta_diarizacion, 'r', encoding='utf-8') as f:
         diarizacion = json.load(f)
-        
-    def encontrar_ponente(segundo, diarizacion):
-        for turno in diarizacion:
-            if turno["inicio"] <= segundo <= turno["fin"]:
+
+    def encontrar_ponente(tiempo, segmentos_diarizacion):
+        for turno in segmentos_diarizacion:
+            if turno["inicio"] <= tiempo <= turno["fin"]:
                 return turno["ponente"]
         return "DESCONOCIDO"
 
@@ -26,11 +26,13 @@ def fusionar_datos_para_rag(ruta_transcripcion: Path, ruta_diarizacion: Path, ru
             
         duracion_por_palabra = (seg["fin"] - seg["inicio"]) / len(palabras)
         
-        for i, p in enumerate(palabras):
+        for i, palabra in enumerate(palabras):
+            t_inicio = seg["inicio"] + (i * duracion_por_palabra)
+            t_fin = t_inicio + duracion_por_palabra
             todas_las_palabras.append({
-                "texto": p,
-                "inicio": seg["inicio"] + (i * duracion_por_palabra),
-                "fin": seg["inicio"] + ((i + 1) * duracion_por_palabra),
+                "texto": palabra,
+                "inicio": t_inicio,
+                "fin": t_fin,
                 "ponente": ponente
             })
 
@@ -39,12 +41,12 @@ def fusionar_datos_para_rag(ruta_transcripcion: Path, ruta_diarizacion: Path, ru
     if salto <= 0: salto = max_palabras
     
     for i in range(0, len(todas_las_palabras), salto):
-        ventana = todas_las_palabras[i : i + max_palabras]
+        ventana = todas_las_palabras[i:i + max_palabras]
         if not ventana: break
         
+        texto_chunk = " ".join([p["texto"] for p in ventana])
         inicio_chunk = ventana[0]["inicio"]
         fin_chunk = ventana[-1]["fin"]
-        texto_chunk = " ".join([p["texto"] for p in ventana])
         
         ponentes_en_ventana = [p["ponente"] for p in ventana]
         ponente_dominante = max(set(ponentes_en_ventana), key=ponentes_en_ventana.count)
