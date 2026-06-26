@@ -29,3 +29,6 @@ venv/
 
 # Variables de entorno
 .env
+
+# Generated Data
+data/

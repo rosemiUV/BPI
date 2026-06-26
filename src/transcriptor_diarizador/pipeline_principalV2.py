@@ -43,10 +43,11 @@ def ejecutar_pipeline_completo(url_video: str, callback_progreso=None):
 
     # 1. AVISO: Inicio (10%)
     if callback_progreso:
-        callback_progreso({"video_id": video_id, "progreso": 10, "estado": "Descargando audio de YouTube..."})
+        callback_progreso({"video_id": video_id, "progreso": 5, "estado": "Descargando audio de YouTube..."})
 
     ruta_script = Path(__file__).parent
-    dir_audio = ruta_script / "data_prueba"
+    dir_data_root = ruta_script.parent.parent / "data"
+    dir_audio = dir_data_root / "audios"
 
     # --- FASE 1: DESCARGA ---
     audio_temporal = descargar_audio_youtube(url_video, dir_audio)
@@ -58,29 +59,29 @@ def ejecutar_pipeline_completo(url_video: str, callback_progreso=None):
     audio_path = dir_audio / f"{video_id}.wav"
     audio_temporal.replace(audio_path)
 
-    # 2. AVISO: Transcripción (30%)
+    # 2. AVISO: Transcripción (10%) - Dejamos margen hasta el 90% para la IA
     if callback_progreso:
-        callback_progreso({"video_id": video_id, "progreso": 30, "estado": "Transcribiendo y separando voces (Esto tardará un poco)..."})
+        callback_progreso({"video_id": video_id, "progreso": 10, "estado": "Transcribiendo y separando voces (Esto tardará un poco)..."})
 
     # --- FASE 2+3: TRANSCRIPCIÓN + DIARIZACIÓN INTEGRADA ---
     print("\n--- FASE 2+3: TRANSCRIPCIÓN Y DIARIZACIÓN (WhisperX + PyAnnote) ---")
     segmentos = transcribir_y_diarizar(audio_path)
 
     # Guardar segmentos crudos (útil para depuración)
-    dir_diar = ruta_script / "resultados_diarizacion"
+    dir_diar = dir_data_root / "resultados_diarizacion"
     dir_diar.mkdir(parents=True, exist_ok=True)
     ruta_segmentos_crudos = dir_diar / f"diarizacion_{video_id}.json"
     with open(ruta_segmentos_crudos, "w", encoding="utf-8") as f:
         json.dump(segmentos, f, indent=2, ensure_ascii=False)
     print(f"Segmentos crudos guardados en: {ruta_segmentos_crudos}")
 
-    # 3. AVISO: Procesamiento de datos (70%)
+    # 3. AVISO: Procesamiento de datos (90%)
     if callback_progreso:
-        callback_progreso({"video_id": video_id, "progreso": 70, "estado": "Generando fragmentos inteligentes para el buscador RAG..."})
+        callback_progreso({"video_id": video_id, "progreso": 90, "estado": "Generando fragmentos inteligentes para el buscador RAG..."})
 
     # --- FASE 4: CHUNKING + METADATOS ---
     print("\n--- FASE 4: GENERANDO CHUNKS PARA RAG ---")
-    dir_final = ruta_script / "resultados_finales"
+    dir_final = dir_data_root / "resultados_finales"
     ruta_json_final = dir_final / f"datos_rag_{video_id}.json"
 
     chunks = fusionar_datos_para_rag(
@@ -90,13 +91,13 @@ def ejecutar_pipeline_completo(url_video: str, callback_progreso=None):
         titulo_video=titulo_real,
         fecha_publicacion=fecha_publicacion,
         ruta_guardado=ruta_json_final,
-        max_palabras=50,
+        max_palabras=170,
     )
     print(f"Chunks generados: {len(chunks)} — guardados en: {ruta_json_final}")
 
-    # 4. AVISO: Base de datos (90%)
+    # 4. AVISO: Base de datos (95%)
     if callback_progreso:
-        callback_progreso({"video_id": video_id, "progreso": 90, "estado": "Guardando información procesada en ChromaDB..."})
+        callback_progreso({"video_id": video_id, "progreso": 95, "estado": "Guardando información procesada en ChromaDB..."})
 
     # --- FASE 5: SUBIDA A CHROMADB ---
     print("\n--- FASE 5: SUBIDA A CHROMA DB ---")
@@ -113,7 +114,7 @@ def ejecutar_pipeline_completo(url_video: str, callback_progreso=None):
     return video_id, str(ruta_json_final), titulo_real
 
 
-def ejecutar_pipeline_lote(lista_urls: list):
+def ejecutar_pipeline_lote(lista_urls: list, callback_progreso=None):
     """Procesa una lista de URLs una a una con cortafuegos por vídeo."""
     print(f"\nINICIANDO PROCESAMIENTO EN LOTE DE {len(lista_urls)} VÍDEOS")
 
@@ -123,6 +124,8 @@ def ejecutar_pipeline_lote(lista_urls: list):
     # --- NUESTRA FUNCIÓN ESPÍA PARA VER LOS LOGS EN LA TERMINAL ---
     def mi_impresora_de_progreso(datos):
         print(f"  ➜ [ESTADO WEB] Vídeo: {datos['video_id']} | Progreso: {datos['progreso']}% | {datos['estado']}")
+        if callback_progreso:
+            callback_progreso(datos)
     # --------------------------------------------------------------
 
     for indice, url in enumerate(lista_urls, start=1):

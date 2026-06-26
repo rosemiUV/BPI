@@ -3,11 +3,16 @@ Los endpoints (URLs) de la API
 '''
 
 import asyncio
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from datetime import datetime
 from src.api.schemas import SearchRequest, SearchResponse
 from src.api.schemas import UrlVideoRequest, ContextRequest, SummaryRequest, EntitiesRequest
-from src.transcriptor_diarizador.V1.pipeline_principal import ejecutar_pipeline_lote
+from src.transcriptor_diarizador.pipeline_principalV2 import ejecutar_pipeline_lote
+from typing import Dict
+from starlette.concurrency import run_in_threadpool
+
+# Diccionario para guardar las conexiones activas de los clientes
+active_websockets: Dict[str, WebSocket] = {}
 
 # Instanciamos el enrutador
 router = APIRouter()
@@ -18,7 +23,7 @@ def get_sessions():
     Devuelve la lista de sesiones únicas almacenadas en ChromaDB.
     """
     try:
-        from src.transcriptor_diarizador.V1.cargador_chroma import conectar_chromadb, obtener_coleccion
+        from src.transcriptor_diarizador.cargador_chroma import conectar_chromadb, obtener_coleccion
         cliente = conectar_chromadb()
         coleccion = obtener_coleccion(cliente)
         
@@ -85,8 +90,21 @@ def get_context(request: ContextRequest):
         raise HTTPException(status_code=500, detail="Error obteniendo el contexto.")
 
 
+@router.websocket('/ws/progress/{client_id}')
+async def websocket_endpoint(websocket: WebSocket, client_id: str):
+    await websocket.accept()
+    active_websockets[client_id] = websocket
+    try:
+        while True:
+            # Mantenemos la conexión abierta escuchando, aunque el cliente no envíe nada
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        if client_id in active_websockets:
+            del active_websockets[client_id]
+
+
 @router.post('/process')
-def process_video(request: UrlVideoRequest):
+async def process_video(request: UrlVideoRequest):
     try:
         urls_to_process = []
         if request.urls:
@@ -97,9 +115,21 @@ def process_video(request: UrlVideoRequest):
         if not urls_to_process:
             raise HTTPException(status_code=400, detail="Se requiere al menos una URL.")
             
+        # Función callback que enviará el estado en tiempo real al WebSocket conectado
+        loop = asyncio.get_running_loop()
+        def callback_progreso(datos):
+            if request.client_id and request.client_id in active_websockets:
+                ws = active_websockets[request.client_id]
+                # Utilizamos asyncio.run_coroutine_threadsafe porque esto se ejecutará en un thread secundario
+                asyncio.run_coroutine_threadsafe(ws.send_json(datos), loop)
+
         # Su función debería encargarse de iterar, subir a ChromaDB y devolver 
         # una lista con el formato exacto que necesita el frontend.
-        resultados_exitosos, videos_fallidos = ejecutar_pipeline_lote(urls_to_process)
+        resultados_exitosos, videos_fallidos = await run_in_threadpool(
+            ejecutar_pipeline_lote,
+            urls_to_process,
+            callback_progreso
+        )
 
         # Mapeamos los resultados exitosos al formato exacto que espera nuestro frontend React
         sesiones_procesadas = []

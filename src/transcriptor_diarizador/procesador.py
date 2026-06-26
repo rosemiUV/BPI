@@ -75,10 +75,23 @@ def transcribir_y_diarizar(ruta_audio: Path, idioma: str = "es") -> list:
     # 1. Transcribir
     print("Cargando modelo WhisperX (large-v2)...")
     modelo = whisperx.load_model("large-v2", dispositivo, compute_type=tipo_computo)
-    resultado = modelo.transcribe(str(ruta_audio), batch_size=16, language=idioma)
+    
+    try:
+        resultado = modelo.transcribe(str(ruta_audio), batch_size=16, language=idioma)
+    except IndexError as e:
+        print("AVISO: WhisperX lanzó IndexError durante la transcripción. Es probable que no haya voz activa en el audio.")
+        del modelo
+        if dispositivo == "cuda":
+            torch.cuda.empty_cache()
+        return []
+        
     del modelo
     if dispositivo == "cuda":
         torch.cuda.empty_cache()
+
+    if not resultado.get("segments"):
+        print("AVISO: No se detectaron segmentos de voz en la transcripción.")
+        return []
 
     # 2. Alinear timestamps a nivel de palabra
     print("Alineando timestamps por palabra...")
@@ -100,13 +113,22 @@ def transcribir_y_diarizar(ruta_audio: Path, idioma: str = "es") -> list:
     # 3. Diarizar con PyAnnote a través de WhisperX
     print("Ejecutando diarización integrada (PyAnnote via WhisperX)...")
     pipeline_diar = whisperx.diarize.DiarizationPipeline(
-        token=HF_TOKEN,
+        use_auth_token=HF_TOKEN,
         device=torch.device(dispositivo),
     )
-    segmentos_diar = pipeline_diar(str(ruta_audio))
+    
+    try:
+        segmentos_diar = pipeline_diar(str(ruta_audio))
+    except Exception as e:
+        print(f"AVISO: PyAnnote falló en la diarización ({e}). Retornando sin speakers.")
+        return resultado_alineado["segments"]
 
     # 4. Asignar speakers a nivel de palabra
     print("Asignando speakers a cada palabra...")
-    resultado_final = whisperx.assign_word_speakers(segmentos_diar, resultado_alineado)
+    try:
+        resultado_final = whisperx.assign_word_speakers(segmentos_diar, resultado_alineado)
+    except Exception as e:
+        print(f"AVISO: Fallo al asignar speakers ({e}). Retornando transcripción sin asignar.")
+        return resultado_alineado["segments"]
 
     return resultado_final["segments"]

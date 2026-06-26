@@ -23,6 +23,7 @@ class SearchResponse(BaseModel):
 class UrlVideoRequest(BaseModel):
     url: Optional[str] = None
     urls: Optional[List[str]] = None
+    client_id: Optional[str] = None
 
 class ContextRequest(BaseModel):
     video_id: str

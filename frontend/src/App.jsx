@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { Search, PlayCircle, ArrowLeft, Loader2, Video, Clock, ChevronRight, Info, Sparkles, X, Users } from 'lucide-react'
 
+// Configuración de URLs mediante variables de entorno (con fallback a localhost)
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const WS_URL = API_URL.replace(/^http/, 'ws');
+
 // Las sesiones se cargarán ahora de forma dinámica desde el backend
 function App() {
 
@@ -16,7 +20,7 @@ function App() {
   useEffect(() => {
     const fetchSesiones = async () => {
       try {
-        const respuesta = await fetch('http://localhost:8000/api/sessions')
+        const respuesta = await fetch(`${API_URL}/api/sessions`)
         if (respuesta.ok) {
           const datos = await respuesta.json()
           setSesionesGuardadas(datos)
@@ -33,6 +37,62 @@ function App() {
   // === ESTADOS PANTALLA DE INICIO ===
   const [urlVideo, setUrlVideo] = useState('')
   const [procesandoUrl, setProcesandoUrl] = useState(false)
+  const [progresoCarga, setProgresoCarga] = useState(0)
+  const [estadoCarga, setEstadoCarga] = useState('')
+  const [progresoCargaReal, setProgresoCargaReal] = useState(0)
+
+  // === EFECTO DE PROGRESO ARTIFICIAL (ANIMACIÓN SUAVE) ===
+  const progresoInterno = useRef(0);
+
+  useEffect(() => {
+    if (!procesandoUrl) {
+      progresoInterno.current = 0;
+      return;
+    }
+
+    if (progresoCargaReal > progresoInterno.current) {
+      progresoInterno.current = progresoCargaReal;
+    }
+
+    // Nuevos límites ajustados para dar casi toda la barra a la IA (Fase 2)
+    // 5%  -> Descargando Audio (Límite 9%)
+    // 10% -> Diarizando (Límite 89%)
+    // 90% -> Chunking (Límite 94%)
+    // 95% -> ChromaDB (Límite 99%)
+    const limiteAnimado = progresoCargaReal < 10 ? 9
+      : progresoCargaReal < 90 ? 89
+        : progresoCargaReal < 95 ? 94
+          : progresoCargaReal < 100 ? 99
+            : 100;
+
+    const interval = setInterval(() => {
+      // Calculamos la distancia restante hasta el límite
+      const distancia = limiteAnimado - progresoInterno.current;
+      
+      if (distancia > 0) {
+        // Avanzamos un porcentaje de la distancia
+        let incremento = distancia * 0.005;
+        // Incremento base un poco mayor (0.05) para que no parezca que está "clavado" 
+        // cuando tiene que recorrer un tramo muy largo de golpe (del 10 al 89)
+        if (incremento < 0.05) incremento = 0.05;
+        
+        progresoInterno.current += incremento;
+        if (progresoInterno.current > limiteAnimado) progresoInterno.current = limiteAnimado;
+        
+      } else if (progresoInterno.current >= limiteAnimado && progresoInterno.current < limiteAnimado + 0.98) {
+        // TRUCO PROFESIONAL: Si ya llegamos al "límite" y la IA sigue procesando,
+        // avanzamos cantidades microscópicas (ej. 0.005 por segundo)
+        // para dar la sensación visual de que el algoritmo sigue trabajando y no se ha colgado.
+        progresoInterno.current += 0.001;
+      }
+
+      // Actualizamos el estado redondeado a 2 decimales para renderizar
+      setProgresoCarga(Math.round(progresoInterno.current * 100) / 100);
+
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, [procesandoUrl, progresoCargaReal]);
 
   // === ESTADOS BUSCADOR ===
   const [pregunta, setPregunta] = useState('')
@@ -80,7 +140,7 @@ function App() {
     const fetchResumen = async () => {
       setCargandoResumen(true)
       try {
-        const respuesta = await fetch('http://localhost:8000/api/summary', {
+        const respuesta = await fetch(`${API_URL}/api/summary`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ video_id: sesionActiva.id_sesion })
@@ -102,7 +162,7 @@ function App() {
     const fetchEntidades = async () => {
       setCargandoEntidades(true)
       try {
-        const respuesta = await fetch('http://localhost:8000/api/entities', {
+        const respuesta = await fetch(`${API_URL}/api/entities`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ video_id: sesionActiva.id_sesion })
@@ -140,7 +200,7 @@ function App() {
     // Filtrar válidas y ordenar de mayor a menor longitud para regex seguro
     const validEntities = entidadesList.filter(e => e.nombre && e.nombre.length > 2);
     if (validEntities.length === 0) return <>{text}</>;
-    
+
     validEntities.sort((a, b) => b.nombre.length - a.nombre.length);
 
     // Regex global case-insensitive
@@ -153,19 +213,19 @@ function App() {
       <>
         {parts.map((part, i) => {
           const entityMatch = validEntities.find(e => e.nombre.toLowerCase() === part.toLowerCase());
-          
+
           if (entityMatch) {
             const tipo = entityMatch.tipo;
             let bgColor = 'bg-gray-100 text-gray-800 border-gray-300';
             let icon = '📌';
-            
+
             if (tipo === 'ley') { bgColor = 'bg-amber-100 text-amber-800 border-amber-300'; icon = '⚖️'; }
             else if (tipo === 'persona') { bgColor = 'bg-emerald-100 text-emerald-800 border-emerald-300'; icon = '👤'; }
             else if (tipo === 'lugar') { bgColor = 'bg-blue-100 text-blue-800 border-blue-300'; icon = '📍'; }
             else if (tipo === 'institucion') { bgColor = 'bg-purple-100 text-purple-800 border-purple-300'; icon = '🏛️'; }
-            
+
             return (
-              <span 
+              <span
                 key={i}
                 onMouseEnter={(e) => {
                   const rect = e.target.getBoundingClientRect();
@@ -197,7 +257,7 @@ function App() {
 
     // Separamos el índice del resumen usando el encabezado que le exigimos al LLM
     const partes = texto.split(/### 2\. Resumen Global/i);
-    
+
     let indiceStr = partes[0].replace(/### 1\. Índice de Temas/i, '').trim();
     let resumenStr = partes.length > 1 ? partes[1].trim() : '';
 
@@ -264,16 +324,39 @@ function App() {
       return;
     }
 
+    // Inicializar estado de carga
+    setProgresoCarga(0);
+    setProgresoCargaReal(0);
+    setEstadoCarga('Conectando al servidor...');
+
+    // 1. Generar ID único para este cliente/petición
+    const clientId = crypto.randomUUID();
+
+    // 2. Conectar al WebSocket
+    const wsUrl = `${WS_URL}/api/ws/progress/${clientId}`;
+    const ws = new WebSocket(wsUrl);
+
+    ws.onmessage = (event) => {
+      try {
+        const datos = JSON.parse(event.data);
+        if (datos.progreso !== undefined) setProgresoCargaReal(datos.progreso);
+        if (datos.estado) setEstadoCarga(datos.estado);
+      } catch (err) {
+        console.error("Error parseando WS:", err);
+      }
+    };
+
     try {
       // Hacemos la peticion POST a nuestro endpoint de FastAPI
-      const respuesta = await fetch('http://localhost:8000/api/process', {
+      const respuesta = await fetch(`${API_URL}/api/process`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           url: urlsArray[0], // Compatibilidad hacia atrás
-          urls: urlsArray    // Nueva funcionalidad lote
+          urls: urlsArray,   // Nueva funcionalidad lote
+          client_id: clientId // Para que el backend sepa a qué WS enviar el progreso
         })
       })
 
@@ -301,13 +384,14 @@ function App() {
           return prev
         })
       }
-      
+
       setUrlVideo('')
 
     } catch (error) {
       console.error('Error al procesar el vídeo:', error)
       alert("Hubo un error al procesar el vídeo. Revisa la terminal donde corre FastAPI para ver los detalles.")
     } finally {
+      ws.close();
       setProcesandoUrl(false)
     }
   }
@@ -324,7 +408,7 @@ function App() {
 
     let inicio_seg = fuente.inicio_segundos;
     let fin_seg = fuente.fin_segundos;
-    
+
     if (inicio_seg === undefined) {
       if (fuente.enlace_video && fuente.enlace_video.includes('t=')) {
         const match = fuente.enlace_video.match(/t=(\d+)/);
@@ -341,7 +425,7 @@ function App() {
     setCargandoContexto(index);
     setContextoAmpliado(null);
     try {
-      const response = await fetch('http://localhost:8000/api/context', {
+      const response = await fetch(`${API_URL}/api/context`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -376,14 +460,14 @@ function App() {
 
     setCargandoBusqueda(true);
     const preguntaEnviada = pregunta;
-    
+
     // Añadimos la pregunta al chat
     const nuevoMensajeUsuario = { role: 'user', content: preguntaEnviada, id: Date.now() };
     setHistorialChat(prev => [...prev, nuevoMensajeUsuario]);
     setPregunta('');
 
     try {
-      const respuesta = await fetch('http://localhost:8000/api/search', {
+      const respuesta = await fetch(`${API_URL}/api/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -393,12 +477,12 @@ function App() {
       });
 
       const datos = await respuesta.json();
-      
-      const nuevoMensajeBot = { 
-        role: 'bot', 
-        content: datos.respuesta_llm, 
-        fuentes_top_k: datos.fuentes_top_k || [], 
-        id: Date.now() + 1 
+
+      const nuevoMensajeBot = {
+        role: 'bot',
+        content: datos.respuesta_llm,
+        fuentes_top_k: datos.fuentes_top_k || [],
+        id: Date.now() + 1
       };
 
       setHistorialChat(prev => [...prev, nuevoMensajeBot]);
@@ -424,8 +508,14 @@ function App() {
       let videoId = 'TEST';
       let time = 0;
 
-      // Algunas URLs vienen mal formadas como /live/ID&t=10s
-      const cleanUrl = url.replace(/&t=/, '?t='); 
+      // 1. Extraer el tiempo directamente con RegEx (soporta ?t=10s o &t=10s)
+      const timeMatch = url.match(/[?&]t=(\d+)s?/);
+      if (timeMatch) {
+        time = parseInt(timeMatch[1], 10);
+      }
+
+      // 2. Limpiar el tiempo de la URL para que no interfiera al buscar el ID
+      const cleanUrl = url.replace(/[?&]t=\d+s?/, '');
       const urlObj = new URL(cleanUrl);
 
       if (urlObj.hostname.includes('youtube.com')) {
@@ -438,11 +528,6 @@ function App() {
         }
       } else if (urlObj.hostname === 'youtu.be') {
         videoId = urlObj.pathname.slice(1);
-      }
-
-      let timeStr = urlObj.searchParams.get('t');
-      if (timeStr) {
-        time = parseInt(timeStr.replace('s', '')) || 0;
       }
 
       return `https://www.youtube.com/embed/${videoId}?start=${time}&enablejsapi=1`;
@@ -529,7 +614,7 @@ function App() {
           <div className="text-center space-y-5 pt-8 flex flex-col items-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/5 text-sm font-medium text-gray-600 mb-4">
               <Sparkles size={16} />
-              <span>BETA v1.0</span>
+              <span>BETA v1.1</span>
             </div>
             <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-[#1d1d1f]">
               Buscador Plenario<br />
@@ -568,9 +653,21 @@ function App() {
             </div>
 
             {procesandoUrl && (
-              <p className='text-sm text-[#86868b] mt-6 flex items-center justify-center gap-2 animate-pulse font-medium'>
-                <Info size={16} /> Descargando y ejecutando modelos (Whisper + PyAnnote)...
-              </p>
+              <div className="mt-8 bg-white p-6 rounded-3xl border border-black/[0.04] shadow-sm">
+                <div className="flex justify-between items-center mb-3 text-sm font-medium">
+                  <span className="text-[#1d1d1f] flex items-center gap-2">
+                    <Loader2 className="animate-spin text-blue-500" size={16} />
+                    {estadoCarga || "Iniciando procesamiento..."}
+                  </span>
+                  <span className="text-blue-600 font-bold">{progresoCarga}%</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                  <div
+                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${Math.max(0, Math.min(100, progresoCarga))}%` }}
+                  ></div>
+                </div>
+              </div>
             )}
           </div>
 
@@ -641,7 +738,7 @@ function App() {
               </h2>
               {cargandoResumen || cargandoEntidades ? (
                 <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-500 rounded-lg font-medium text-sm border border-gray-100 shadow-sm">
-                  <Loader2 className="animate-spin text-blue-500" size={16} /> 
+                  <Loader2 className="animate-spin text-blue-500" size={16} />
                   <span className="animate-pulse">Analizando sesión...</span>
                 </div>
               ) : resumenGlobal ? (
@@ -654,9 +751,8 @@ function App() {
                   </button>
                   <button
                     onClick={() => setMostrarResumen(!mostrarResumen)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                      mostrarResumen ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${mostrarResumen ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
                     <Sparkles size={16} /> {mostrarResumen ? 'Ocultar Resumen' : 'Ver Resumen'}
                   </button>
@@ -673,12 +769,11 @@ function App() {
           <div className="flex-1 relative min-h-0">
 
             {/* VISTA 1: Tarjeta de Resumen Global */}
-            <div className={`absolute inset-0 transition-all duration-500 ease-out flex flex-col ${
-              mostrarResumen && resumenGlobal ? 'opacity-100 z-20 translate-y-0' : 'opacity-0 z-0 pointer-events-none translate-y-8'
-            }`}>
+            <div className={`absolute inset-0 transition-all duration-500 ease-out flex flex-col ${mostrarResumen && resumenGlobal ? 'opacity-100 z-20 translate-y-0' : 'opacity-0 z-0 pointer-events-none translate-y-8'
+              }`}>
               <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-black/[0.04] p-8 relative flex flex-col flex-1 min-h-0 mb-6 overflow-hidden">
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                
+
                 <div className="flex items-start justify-between mb-6 shrink-0">
                   <h3 className="text-2xl font-semibold tracking-tight flex items-center gap-3 text-[#1d1d1f]">
                     <div className="bg-purple-50 p-2 rounded-2xl border border-purple-100/50 shadow-sm">
@@ -690,7 +785,7 @@ function App() {
                     <X size={20} className="text-gray-400 hover:text-gray-600" />
                   </button>
                 </div>
-                
+
                 <div className="flex-1 overflow-y-auto pr-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full relative z-10">
                   <ResumenVisual texto={resumenGlobal} />
                 </div>
@@ -698,166 +793,164 @@ function App() {
             </div>
 
             {/* VISTA 2: Layout Principal Dual-Pane (Chat + Vídeo) */}
-            <div className={`absolute inset-0 transition-all duration-500 ease-out flex flex-col lg:flex-row gap-6 pb-6 ${
-              !mostrarResumen ? 'opacity-100 z-20 translate-y-0' : 'opacity-0 z-0 pointer-events-none translate-y-8'
-            }`}>
-            
-            {/* PANEL IZQUIERDO: CHAT (40%) */}
-            <div className="w-full lg:w-[40%] flex flex-col bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-black/[0.04] overflow-hidden">
-              
-              {/* Historial de mensajes */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col bg-[#fcfcfc] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full">
-                {historialChat.length === 0 ? (
-                  <div className="m-auto text-center flex flex-col items-center justify-center text-gray-400 p-8">
-                    <div className="bg-blue-50 p-4 rounded-full mb-4">
-                      <Sparkles size={32} className="text-blue-500" />
+            <div className={`absolute inset-0 transition-all duration-500 ease-out flex flex-col lg:flex-row gap-6 pb-6 ${!mostrarResumen ? 'opacity-100 z-20 translate-y-0' : 'opacity-0 z-0 pointer-events-none translate-y-8'
+              }`}>
+
+              {/* PANEL IZQUIERDO: CHAT (40%) */}
+              <div className="w-full lg:w-[40%] flex flex-col bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-black/[0.04] overflow-hidden">
+
+                {/* Historial de mensajes */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col bg-[#fcfcfc] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+                  {historialChat.length === 0 ? (
+                    <div className="m-auto text-center flex flex-col items-center justify-center text-gray-400 p-8">
+                      <div className="bg-blue-50 p-4 rounded-full mb-4">
+                        <Sparkles size={32} className="text-blue-500" />
+                      </div>
+                      <h3 className="font-semibold text-xl text-gray-800 mb-2">Asistente de Sesión</h3>
+                      <p className="text-sm">Escribe tu pregunta abajo para buscar información en el vídeo interactuando con la inteligencia artificial.</p>
                     </div>
-                    <h3 className="font-semibold text-xl text-gray-800 mb-2">Asistente de Sesión</h3>
-                    <p className="text-sm">Escribe tu pregunta abajo para buscar información en el vídeo interactuando con la inteligencia artificial.</p>
-                  </div>
-                ) : (
-                  historialChat.map((msg) => (
-                    <div 
-                      key={msg.id} 
-                      onClick={() => msg.role === 'bot' && msg.fuentes_top_k?.length > 0 && setMensajeActivo(msg)}
-                      className={`max-w-[85%] rounded-3xl p-4 shadow-sm transition-all ${
-                        msg.role === 'user' 
-                          ? 'bg-blue-600 text-white self-end rounded-br-md shadow-blue-500/20' 
-                          : `bg-white text-[#1d1d1f] self-start rounded-bl-md border border-gray-100 cursor-pointer hover:border-blue-200 hover:shadow-md ${mensajeActivo?.id === msg.id ? 'ring-2 ring-blue-500/30 bg-blue-50/30' : ''}`
-                      }`}
-                    >
-                      <p className="leading-relaxed whitespace-pre-wrap text-[15px]">
-                        <TextWithEntities text={msg.content} entidadesList={entidades} />
-                      </p>
-                      
-                      {msg.role === 'bot' && msg.fuentes_top_k?.length > 0 && (
-                        <div className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-2 text-xs font-semibold text-blue-600">
-                          <PlayCircle size={14}/> {msg.fuentes_top_k.length} fuentes en vídeo (clic para ver)
-                        </div>
-                      )}
-                      {msg.role === 'bot' && msg.fuentes_top_k?.length === 0 && (
-                         <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-400">
-                           Sin coincidencias exactas.
-                         </div>
-                      )}
-                    </div>
-                  ))
-                )}
-                {cargandoBusqueda && (
-                  <div className="bg-white text-gray-500 rounded-3xl rounded-bl-md p-4 self-start flex items-center gap-3 border border-gray-100 shadow-sm">
-                    <Loader2 className="animate-spin text-blue-500" size={18} /> Pensando la respuesta...
-                  </div>
-                )}
-                <div ref={chatEndRef} />
-              </div>
-
-              {/* Input de chat */}
-              <div className="p-4 bg-white border-t border-gray-100 shrink-0">
-                <div className="relative flex items-center">
-                  <input 
-                    type="text" 
-                    className="w-full pl-6 pr-14 py-4 bg-[#f5f5f7] rounded-full focus:bg-white focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 border border-transparent outline-none transition-all placeholder:text-gray-400 font-medium"
-                    placeholder="Pregunta algo sobre el vídeo..."
-                    value={pregunta}
-                    onChange={e => setPregunta(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && realizarBusqueda()}
-                    disabled={cargandoBusqueda}
-                  />
-                  <button 
-                    onClick={realizarBusqueda}
-                    disabled={cargandoBusqueda || !pregunta.trim()}
-                    className="absolute right-2 p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition disabled:opacity-50 shadow-md"
-                  >
-                    <ArrowLeft size={18} className="rotate-180" />
-                  </button>
-                </div>
-              </div>
-
-            </div>
-
-            {/* PANEL DERECHO: TIKTOK FEED (60%) */}
-            <div className="w-full lg:w-[60%] flex flex-col bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-black/[0.04] p-6 overflow-hidden">
-              {mensajeActivo && mensajeActivo.fuentes_top_k && mensajeActivo.fuentes_top_k.length > 0 ? (
-                <div className="flex flex-col h-full gap-6 md:flex-row min-h-0">
-                  
-                  {/* Lista de Fuentes */}
-                  <div className="w-full md:w-1/3 overflow-y-auto pr-2 flex flex-col gap-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                    <h4 className="text-sm font-bold uppercase tracking-widest text-[#86868b] mb-2 px-2 shrink-0">Evidencias</h4>
-                    {mensajeActivo.fuentes_top_k.map((fuente, index) => (
-                      <button
-                        key={index}
-                        onClick={() => irAVideo(index)}
-                        className={`text-left p-3 rounded-3xl transition-all duration-300 ${indiceActivo === index
-                          ? 'bg-[#f5f5f7] shadow-inner border border-black/[0.04]'
-                          : 'bg-transparent scale-[0.98] hover:bg-gray-50 opacity-60 hover:opacity-100'
+                  ) : (
+                    historialChat.map((msg) => (
+                      <div
+                        key={msg.id}
+                        onClick={() => msg.role === 'bot' && msg.fuentes_top_k?.length > 0 && setMensajeActivo(msg)}
+                        className={`max-w-[85%] rounded-3xl p-4 shadow-sm transition-all ${msg.role === 'user'
+                            ? 'bg-blue-600 text-white self-end rounded-br-md shadow-blue-500/20'
+                            : `bg-white text-[#1d1d1f] self-start rounded-bl-md border border-gray-100 cursor-pointer hover:border-blue-200 hover:shadow-md ${mensajeActivo?.id === msg.id ? 'ring-2 ring-blue-500/30 bg-blue-50/30' : ''}`
                           }`}
                       >
-                        <span className="flex items-center gap-2 font-semibold text-sm mb-2 text-[#1d1d1f]">
-                          <PlayCircle size={16} className={indiceActivo === index ? "text-blue-600" : "text-gray-400"} />
-                          {fuente.ponente}
-                        </span>
-                        <p className="text-sm text-[#86868b] line-clamp-3 leading-relaxed">
-                          "{fuente.texto}"
+                        <p className="leading-relaxed whitespace-pre-wrap text-[15px]">
+                          <TextWithEntities text={msg.content} entidadesList={entidades} />
                         </p>
 
-                        <div className="mt-3 flex justify-end">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              cargarContextoAmpliado(fuente, index);
-                            }}
-                            disabled={cargandoContexto !== null}
-                            className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
-                          >
-                            {cargandoContexto === index ? <Loader2 size={14} className="animate-spin" /> : <Info size={14} />} Ver contexto
-                          </button>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Reproductor de Video Carrusel */}
-                  <div
-                    ref={feedRef}
-                    className="w-full md:w-2/3 flex-1 bg-black rounded-[2rem] overflow-y-scroll snap-y snap-mandatory relative shadow-inner [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth"
-                  >
-                    {mensajeActivo.fuentes_top_k.map((fuente, index) => (
-                      <div
-                        key={index}
-                        id={`video-tiktok-${index}`}
-                        data-index={index}
-                        className="video-container w-full h-full snap-start snap-always relative flex flex-col items-center justify-center bg-[#1d1d1f]"
-                      >
-                        <iframe
-                          className="yt-iframe w-full aspect-video shadow-2xl"
-                          src={obtenerEnlaceEmbed(fuente.enlace_video)}
-                          title={`Video ${index}`}
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                          allowFullScreen
-                        ></iframe>
-                        <div className="absolute bottom-8 left-6 right-6 bg-black/40 backdrop-blur-md p-5 rounded-3xl border border-white/10 text-white pointer-events-none">
-                          <p className="font-semibold text-lg tracking-tight mb-1">{fuente.ponente}</p>
-                          <p className="text-sm opacity-80 line-clamp-2 leading-relaxed">"{fuente.texto}"</p>
-                        </div>
+                        {msg.role === 'bot' && msg.fuentes_top_k?.length > 0 && (
+                          <div className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-2 text-xs font-semibold text-blue-600">
+                            <PlayCircle size={14} /> {msg.fuentes_top_k.length} fuentes en vídeo (clic para ver)
+                          </div>
+                        )}
+                        {msg.role === 'bot' && msg.fuentes_top_k?.length === 0 && (
+                          <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-400">
+                            Sin coincidencias exactas.
+                          </div>
+                        )}
                       </div>
-                    ))}
-                    <div data-index="fantasma" className="fantasma-loop w-full h-2 snap-start opacity-0"></div>
+                    ))
+                  )}
+                  {cargandoBusqueda && (
+                    <div className="bg-white text-gray-500 rounded-3xl rounded-bl-md p-4 self-start flex items-center gap-3 border border-gray-100 shadow-sm">
+                      <Loader2 className="animate-spin text-blue-500" size={18} /> Pensando la respuesta...
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* Input de chat */}
+                <div className="p-4 bg-white border-t border-gray-100 shrink-0">
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      className="w-full pl-6 pr-14 py-4 bg-[#f5f5f7] rounded-full focus:bg-white focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 border border-transparent outline-none transition-all placeholder:text-gray-400 font-medium"
+                      placeholder="Pregunta algo sobre el vídeo..."
+                      value={pregunta}
+                      onChange={e => setPregunta(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && realizarBusqueda()}
+                      disabled={cargandoBusqueda}
+                    />
+                    <button
+                      onClick={realizarBusqueda}
+                      disabled={cargandoBusqueda || !pregunta.trim()}
+                      className="absolute right-2 p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition disabled:opacity-50 shadow-md"
+                    >
+                      <ArrowLeft size={18} className="rotate-180" />
+                    </button>
                   </div>
                 </div>
-              ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-10 bg-gray-50/50 rounded-3xl border border-gray-100 border-dashed">
-                  <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                    <Video size={48} className="text-gray-300" />
+
+              </div>
+
+              {/* PANEL DERECHO: TIKTOK FEED (60%) */}
+              <div className="w-full lg:w-[60%] flex flex-col bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-black/[0.04] p-6 overflow-hidden">
+                {mensajeActivo && mensajeActivo.fuentes_top_k && mensajeActivo.fuentes_top_k.length > 0 ? (
+                  <div className="flex flex-col h-full gap-6 md:flex-row min-h-0">
+
+                    {/* Lista de Fuentes */}
+                    <div className="w-full md:w-1/3 overflow-y-auto pr-2 flex flex-col gap-3 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                      <h4 className="text-sm font-bold uppercase tracking-widest text-[#86868b] mb-2 px-2 shrink-0">Evidencias</h4>
+                      {mensajeActivo.fuentes_top_k.map((fuente, index) => (
+                        <button
+                          key={index}
+                          onClick={() => irAVideo(index)}
+                          className={`text-left p-3 rounded-3xl transition-all duration-300 ${indiceActivo === index
+                            ? 'bg-[#f5f5f7] shadow-inner border border-black/[0.04]'
+                            : 'bg-transparent scale-[0.98] hover:bg-gray-50 opacity-60 hover:opacity-100'
+                            }`}
+                        >
+                          <span className="flex items-center gap-2 font-semibold text-sm mb-2 text-[#1d1d1f]">
+                            <PlayCircle size={16} className={indiceActivo === index ? "text-blue-600" : "text-gray-400"} />
+                            {fuente.ponente}
+                          </span>
+                          <p className="text-sm text-[#86868b] line-clamp-3 leading-relaxed">
+                            "{fuente.texto}"
+                          </p>
+
+                          <div className="mt-3 flex justify-end">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                cargarContextoAmpliado(fuente, index);
+                              }}
+                              disabled={cargandoContexto !== null}
+                              className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
+                            >
+                              {cargandoContexto === index ? <Loader2 size={14} className="animate-spin" /> : <Info size={14} />} Ver contexto
+                            </button>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Reproductor de Video Carrusel */}
+                    <div
+                      ref={feedRef}
+                      className="w-full md:w-2/3 flex-1 bg-black rounded-[2rem] overflow-y-scroll snap-y snap-mandatory relative shadow-inner [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth"
+                    >
+                      {mensajeActivo.fuentes_top_k.map((fuente, index) => (
+                        <div
+                          key={index}
+                          id={`video-tiktok-${index}`}
+                          data-index={index}
+                          className="video-container w-full h-full snap-start snap-always relative flex flex-col items-center justify-center bg-[#1d1d1f]"
+                        >
+                          <iframe
+                            className="yt-iframe w-full aspect-video shadow-2xl"
+                            src={obtenerEnlaceEmbed(fuente.enlace_video)}
+                            title={`Video ${index}`}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                          ></iframe>
+                          <div className="absolute bottom-8 left-6 right-6 bg-black/40 backdrop-blur-md p-5 rounded-3xl border border-white/10 text-white pointer-events-none">
+                            <p className="font-semibold text-lg tracking-tight mb-1">{fuente.ponente}</p>
+                            <p className="text-sm opacity-80 line-clamp-2 leading-relaxed">"{fuente.texto}"</p>
+                          </div>
+                        </div>
+                      ))}
+                      <div data-index="fantasma" className="fantasma-loop w-full h-2 snap-start opacity-0"></div>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-[#1d1d1f] mb-2">Feed de Vídeo</h3>
-                  <p className="text-[#86868b] max-w-sm">Haz una pregunta en el chat para ver aquí las evidencias en vídeo de la respuesta.</p>
-                </div>
-              )}
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-10 bg-gray-50/50 rounded-3xl border border-gray-100 border-dashed">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                      <Video size={48} className="text-gray-300" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-[#1d1d1f] mb-2">Feed de Vídeo</h3>
+                    <p className="text-[#86868b] max-w-sm">Haz una pregunta en el chat para ver aquí las evidencias en vídeo de la respuesta.</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* MODAL CONTEXTO AMPLIADO */}
@@ -874,22 +967,22 @@ function App() {
                   Intervención completa de <span className="font-semibold text-gray-700">{contextoAmpliado.ponente}</span>
                 </p>
               </div>
-              <button 
+              <button
                 onClick={() => setContextoAmpliado(null)}
                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
               >
                 <X size={20} className="text-gray-500" />
               </button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto flex-1">
               {contextoAmpliado.contexto_completo && contextoAmpliado.contexto_completo.length > 0 ? (
                 <div className="flex flex-col gap-4">
                   {contextoAmpliado.contexto_completo.map((item, i) => {
                     const isTarget = item.texto === contextoAmpliado.texto_fragmento;
                     return (
-                      <div 
-                        key={i} 
+                      <div
+                        key={i}
                         className={`p-4 rounded-2xl transition-colors ${isTarget ? 'bg-blue-50 border border-blue-100 shadow-sm' : 'bg-gray-50 hover:bg-gray-100'}`}
                       >
                         <div className={`text-xs font-medium mb-2 uppercase tracking-wider ${isTarget ? 'text-blue-500' : 'text-gray-400'}`}>
@@ -924,14 +1017,14 @@ function App() {
                   Personas y normativas extraídas de la sesión actual
                 </p>
               </div>
-              <button 
+              <button
                 onClick={() => setMostrarEntidades(false)}
                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
               >
                 <X size={24} className="text-gray-500" />
               </button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto flex-1 bg-gray-50/30">
               {cargandoEntidades ? (
                 <div className="flex flex-col items-center justify-center h-64 text-gray-400">
@@ -960,7 +1053,7 @@ function App() {
                       </div>
                     ))}
                   </div>
-                  
+
                   {/* LEYES */}
                   <div className="flex flex-col gap-4">
                     <h4 className="font-bold text-sm text-amber-700 uppercase tracking-widest flex items-center gap-2 border-b border-amber-100 pb-2">
@@ -1016,10 +1109,10 @@ function App() {
 
       {/* PORTAL TOOLTIP GLOBAL */}
       {tooltipGlobal.visible && (
-        <div 
+        <div
           className="fixed z-[9999] pointer-events-none transition-opacity duration-200"
-          style={{ 
-            left: `${tooltipGlobal.x}px`, 
+          style={{
+            left: `${tooltipGlobal.x}px`,
             top: `${tooltipGlobal.y - 8}px`, // 8px de margen arriba
             transform: 'translate(-50%, -100%)' // Centrado horizontalmente, justo encima
           }}

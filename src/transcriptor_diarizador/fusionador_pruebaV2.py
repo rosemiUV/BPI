@@ -41,7 +41,7 @@ def fusionar_datos_para_rag(
     titulo_video: str,
     fecha_publicacion: str,
     ruta_guardado: Path,
-    max_palabras: int = 50,
+    max_palabras: int = 100,
 ) -> list:
     """
     Convierte segmentos de WhisperX (con campo 'speaker') en chunks para RAG.
