@@ -126,7 +126,7 @@ def ejecutar_pipeline_lote(lista_urls: list):
     # --------------------------------------------------------------
 
     for indice, url in enumerate(lista_urls, start=1):
-        print(f"\n[VÍDEO {indice}/{len(lista_urls)}] {url}")
+        
         try:
             # Pasamos la función espía para que nos imprima en vivo
             video_id, ruta_json, titulo = ejecutar_pipeline_completo(url, callback_progreso=mi_impresora_de_progreso)
