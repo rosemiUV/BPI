@@ -106,6 +106,29 @@ def ejecutar_pipeline_completo(url_video: str, callback_progreso=None):
     else:
         print("Error: no se encontró el JSON final.")
 
+    # --- FASE 6: CÁLCULO DE METADATOS GLOBALES CON IA ---
+    print("\n--- FASE 6: CÁLCULO DE METADATOS GLOBALES CON IA ---")
+    if callback_progreso:
+        callback_progreso({"video_id": video_id, "progreso": 98, "estado": "Generando resumen global y entidades con IA..."})
+
+    try:
+        from src.motor_busqueda.pipeline_rag import generar_resumen, extraer_entidades
+        from src.api.database import guardar_metadatos_video
+        
+        print("Generando resumen...")
+        res_resumen = generar_resumen(video_id)
+        print("Extrayendo entidades...")
+        res_entidades = extraer_entidades(video_id)
+        
+        guardar_metadatos_video(
+            video_id=video_id,
+            resumen=res_resumen.get("resumen", ""),
+            entidades=res_entidades.get("entidades", [])
+        )
+        print("Metadatos globales guardados en SQLite.")
+    except Exception as e:
+        print(f"Error calculando metadatos globales en Fase 6: {e}")
+
     # 5. AVISO: Completado (100%)
     if callback_progreso:
         callback_progreso({"video_id": video_id, "progreso": 100, "estado": "¡Procesamiento completado con éxito!"})

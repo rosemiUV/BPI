@@ -155,12 +155,26 @@ def get_summary(request: SummaryRequest):
     Devuelve un resumen global y el índice de temas para la sesión especificada.
     """
     from src.motor_busqueda.pipeline_rag import generar_resumen
+    from src.api.database import obtener_metadatos_video, guardar_metadatos_video
     
     try:
+        # 1. Intentar cargar desde la caché SQLite (Instantáneo)
+        metadatos = obtener_metadatos_video(request.video_id)
+        if metadatos and metadatos.get("resumen"):
+            print(f"Caché Hit: Resumen devuelto para {request.video_id}")
+            return {"video_id": request.video_id, "resumen": metadatos["resumen"], "error": None}
+
+        # 2. Fallback: Vídeo antiguo sin caché. Llamar al LLM al vuelo.
+        print(f"Caché Miss: Generando resumen para {request.video_id} al vuelo...")
         resultado = generar_resumen(request.video_id)
         if resultado.get("error"):
-            # Devolver el error sin fallar con 500
             return {"error": resultado["error"]}
+            
+        # Guardar en caché para la próxima vez
+        if not resultado.get("error"):
+            entidades_existentes = metadatos.get("entidades", []) if metadatos else []
+            guardar_metadatos_video(request.video_id, resultado["resumen"], entidades_existentes)
+            
         return resultado
     except Exception as e:
         print(f"Error al generar resumen: {e}")
@@ -172,11 +186,28 @@ def get_entities(request: EntitiesRequest):
     Devuelve las entidades encontradas (Leyes y Personas) junto a un pequeño resumen de Wikipedia.
     """
     from src.motor_busqueda.pipeline_rag import extraer_entidades
+    from src.api.database import obtener_metadatos_video, guardar_metadatos_video
     
     try:
+        # 1. Intentar cargar entidades globales desde la caché SQLite (Instantáneo)
+        if not request.pregunta:
+            metadatos = obtener_metadatos_video(request.video_id)
+            if metadatos and metadatos.get("entidades"):
+                print(f"Caché Hit: Entidades devueltas para {request.video_id}")
+                return {"video_id": request.video_id, "entidades": metadatos["entidades"], "error": None}
+
+        # 2. Fallback: Llamar a LLM y Wikipedia
+        print(f"Caché Miss o Búsqueda Específica: Extrayendo entidades para {request.video_id} al vuelo...")
         resultado = extraer_entidades(request.video_id, pregunta=request.pregunta)
         if resultado.get("error"):
             return {"error": resultado["error"]}
+            
+        # Guardar en caché solo si es una extracción global (sin pregunta)
+        if not request.pregunta and not resultado.get("error"):
+            metadatos = obtener_metadatos_video(request.video_id)
+            resumen_existente = metadatos.get("resumen", "") if metadatos else ""
+            guardar_metadatos_video(request.video_id, resumen_existente, resultado["entidades"])
+            
         return resultado
     except Exception as e:
         print(f"Error extrayendo entidades: {e}")
