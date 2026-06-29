@@ -44,6 +44,7 @@ def descargar_audio_youtube(url: str, directorio_salida: Path) -> Path:
     try:
         comando = [
             "yt-dlp",
+            "--extractor-args", "youtube:player_client=android", # <--- Truco anti-bloqueo
             "-f", "ba/b",
             "-x", "--audio-format", "wav",
             "--ffmpeg-location", directorio_ffmpeg,
