@@ -4,8 +4,8 @@ import urllib.request
 import urllib.parse
 import chromadb
 from chromadb.utils import embedding_functions
-from mistralai import Mistral
 from groq import Groq
+from mistralai.client.sdk import Mistral
 from dotenv import load_dotenv
 
 load_dotenv()

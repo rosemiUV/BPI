@@ -8,4 +8,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    allowedHosts: true,
+    hmr: {
+      clientPort: 443
+    }
+  }
 })
