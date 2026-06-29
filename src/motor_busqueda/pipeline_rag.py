@@ -4,8 +4,7 @@ import urllib.request
 import urllib.parse
 import chromadb
 from chromadb.utils import embedding_functions
-import ollama
-from groq import Groq
+from mistralai import Mistral
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -75,30 +74,21 @@ def _construir_contexto(documentos: list, metadatos: list) -> str:
     return "\n".join(lineas)
 
 
-def _llamar_ollama(system: str, messages: list[dict]) -> str:
-    """Llama a Llama-3 local con Ollama. Igual que en el código original."""
-    respuesta = ollama.chat(
-        model="llama3",
-        messages=[{"role": "system", "content": system}] + messages
-    )
-    return respuesta["message"]["content"]
-
-
-def _llamar_groq(system: str, messages: list[dict]) -> str:
+def _llamar_mistral(system: str, messages: list[dict]) -> str:
     """
-    Llama a Llama-3 en la nube con Groq.
-    Solo se usa en extraer_entidades(), para las búsquedas de Wikipedia.
-    Requiere GROQ_API_KEY en el archivo .env
+    Llama a Mistral en la nube.
+    Reemplaza tanto a _llamar_ollama como a _llamar_groq.
+    Requiere MISTRAL_API_KEY en el archivo .env
     """
-    api_key = os.environ.get("GROQ_API_KEY")
+    api_key = os.environ.get("MISTRAL_API_KEY")
     if not api_key:
         raise ValueError(
-            "No se encontró GROQ_API_KEY. "
+            "No se encontró MISTRAL_API_KEY. "
             "Asegúrate de tenerla en el archivo .env"
         )
-    cliente = Groq(api_key=api_key)
-    respuesta = cliente.chat.completions.create(
-        model="llama-3.1-8b-instant",
+    cliente = Mistral(api_key=api_key)
+    respuesta = cliente.chat.complete(
+        model="mistral-small-latest",
         messages=[{"role": "system", "content": system}] + messages,
         temperature=0.3
     )
@@ -107,13 +97,11 @@ def _llamar_groq(system: str, messages: list[dict]) -> str:
 
 # ─────────────────────────────────────────────────────────────
 # FUNCIÓN 1: BÚSQUEDA CON MEMORIA
-# Usa Ollama.
-# Añadimos memoria de conversación por vídeo.
 # ─────────────────────────────────────────────────────────────
 
 def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
     """
-    Busca fragmentos relevantes y responde usando Llama-3 local (Ollama).
+    Busca fragmentos relevantes y responde usando Mistral en la nube.
     Recuerda las preguntas anteriores del mismo vídeo (memoria de conversación).
 
     Parámetros:
@@ -170,8 +158,8 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
         "Puedes usar el historial de la conversación para dar respuestas de seguimiento."
     )
 
-    # 6. Llamar a Groq (en la nube)
-    respuesta_llm = _llamar_groq(system, mensajes)
+    # 6. Llamar a Mistral
+    respuesta_llm = _llamar_mistral(system, mensajes)
 
     # 7. Guardar en historial (pregunta + respuesta)
     if video_id not in _historial:
@@ -200,7 +188,6 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
 
 # ─────────────────────────────────────────────────────────────
 # FUNCIÓN 2: RESUMEN GLOBAL DEL VÍDEO
-# Se llama una sola vez al cargar el vídeo.
 # ─────────────────────────────────────────────────────────────
 
 def generar_resumen(video_id: str, n_fragmentos: int = 20) -> dict:
@@ -261,7 +248,7 @@ def generar_resumen(video_id: str, n_fragmentos: int = 20) -> dict:
     )
 
     try:
-        resumen = _llamar_groq(system, [{"role": "user", "content": mensaje}])
+        resumen = _llamar_mistral(system, [{"role": "user", "content": mensaje}])
         return {"video_id": video_id, "resumen": resumen, "error": None}
     except Exception as e:
         return {"video_id": video_id, "resumen": "", "error": str(e)}
@@ -269,12 +256,6 @@ def generar_resumen(video_id: str, n_fragmentos: int = 20) -> dict:
 
 # ─────────────────────────────────────────────────────────────
 # FUNCIÓN 3: EXTRACCIÓN DE ENTIDADES CON BÚSQUEDA WEB
-# Usa Groq que es más rápido porque hace varias llamadas al LLM seguidas.
-#
-# Flujo:
-#   1. Groq detecta leyes y personas en los fragmentos
-#   2. Por cada entidad, busca información en Wikipedia 
-#   3. Groq genera una explicación breve con lo que encontró
 # ─────────────────────────────────────────────────────────────
 
 def _buscar_wikipedia(termino: str) -> str:
@@ -296,8 +277,7 @@ def _buscar_wikipedia(termino: str) -> str:
 
 def _detectar_entidades_con_llm(texto: str) -> dict:
     """
-    Usa Groq para detectar leyes y personas en el texto parlamentario.
-    Importante: pide nombres COMPLETOS para que Wikipedia los encuentre bien.
+    Usa Mistral para detectar leyes y personas en el texto parlamentario.
     Devuelve {"leyes": [...], "personas": [...]}
     """
     system = (
@@ -320,7 +300,7 @@ def _detectar_entidades_con_llm(texto: str) -> dict:
         '"personas": ["Nombre Completo Persona 1", "..."]}'
     )
     try:
-        respuesta = _llamar_groq(system, [{"role": "user", "content": mensaje}])
+        respuesta = _llamar_mistral(system, [{"role": "user", "content": mensaje}])
         respuesta_limpia = respuesta.strip().strip("```json").strip("```").strip()
         return json.loads(respuesta_limpia)
     except Exception:
@@ -344,7 +324,7 @@ def _resolver_nombre_wikipedia(nombre: str, tipo: str) -> str:
         if resultado and len(resultado) > 50:
             return resultado
 
-    # Intento 3: preguntar a Groq cuál es el título exacto del artículo de Wikipedia
+    # Intento 3: preguntar a Mistral cuál es el título exacto del artículo de Wikipedia
     system = (
         "Eres un asistente que conoce la Wikipedia en español. "
         "Responde ÚNICAMENTE con el título exacto del artículo, sin explicaciones."
@@ -362,7 +342,7 @@ def _resolver_nombre_wikipedia(nombre: str, tipo: str) -> str:
             "Responde solo con el título, nada más."
         )
     try:
-        titulo_wikipedia = _llamar_groq(system, [{"role": "user", "content": mensaje}])
+        titulo_wikipedia = _llamar_mistral(system, [{"role": "user", "content": mensaje}])
         titulo_limpio = titulo_wikipedia.strip().strip('"').strip("'")
         resultado = _buscar_wikipedia(titulo_limpio)
         if resultado and len(resultado) > 50:
@@ -375,11 +355,9 @@ def _resolver_nombre_wikipedia(nombre: str, tipo: str) -> str:
 
 def _explicar_entidad(nombre: str, tipo: str) -> str:
     """
-    Busca información en Wikipedia (con resolución inteligente del nombre)
-    y usa Groq para generar una explicación breve en contexto parlamentario.
+    Busca información en Wikipedia y usa Mistral para generar una explicación breve.
     tipo puede ser "ley" o "persona".
     """
-    # Paso 1: buscar en Wikipedia con resolución inteligente
     info_wikipedia = _resolver_nombre_wikipedia(nombre, tipo)
 
     if info_wikipedia:
@@ -387,14 +365,13 @@ def _explicar_entidad(nombre: str, tipo: str) -> str:
     else:
         fuente = "No se encontró información en Wikipedia."
 
-    # Paso 2: el LLM genera la explicación con contexto parlamentario
     if tipo == "ley":
         instruccion = (
             f"Explica en 2-3 frases qué es '{nombre}', "
             "para qué sirve y cuándo entró en vigor. "
             "Sé directo y claro, como si se lo explicaras a alguien sin conocimientos jurídicos."
         )
-    else:  # persona
+    else:
         instruccion = (
             f"Explica en 2-3 frases quién es '{nombre}' en el contexto "
             "de la política española actual: qué cargo ocupa o ha ocupado "
@@ -406,7 +383,7 @@ def _explicar_entidad(nombre: str, tipo: str) -> str:
     mensaje = f"{instruccion}\n\n{fuente}"
 
     try:
-        return _llamar_groq(system, [{"role": "user", "content": mensaje}])
+        return _llamar_mistral(system, [{"role": "user", "content": mensaje}])
     except Exception:
         return info_wikipedia[:300] if info_wikipedia else "No se pudo obtener información."
 
@@ -416,9 +393,6 @@ def extraer_entidades(video_id: str, pregunta: str = "", top_k: int = 10) -> dic
     Detecta leyes y personas relevantes en los fragmentos del vídeo,
     busca información sobre cada una en Wikipedia y genera una explicación breve.
 
-    Si se pasa una pregunta, analiza los fragmentos más relevantes a esa pregunta.
-    Si no se pasa pregunta, analiza los primeros fragmentos del vídeo.
-
     Devuelve un diccionario con:
       - video_id   → id del vídeo
       - entidades  → lista de entidades, cada una con:
@@ -426,15 +400,8 @@ def extraer_entidades(video_id: str, pregunta: str = "", top_k: int = 10) -> dic
                        · tipo        → "ley" o "persona"
                        · explicacion → 2-3 frases explicando qué es / quién es
       - error      → mensaje de error si algo falló (None si todo fue bien)
-
-    Ejemplo de uso en Streamlit:
-        resultado = extraer_entidades(video_id, pregunta=pregunta_usuario)
-        for entidad in resultado["entidades"]:
-            st.subheader(entidad["nombre"])
-            st.write(entidad["explicacion"])
     """
     try:
-        # 1. Obtener fragmentos relevantes de ChromaDB
         if pregunta:
             resultados = collection.query(
                 query_texts=[pregunta],
@@ -457,14 +424,12 @@ def extraer_entidades(video_id: str, pregunta: str = "", top_k: int = 10) -> dic
                 "error":     f"No se encontraron fragmentos para el video '{video_id}'."
             }
 
-        # 2. Groq detecta las entidades en el texto
         texto_completo = " ".join(documentos)
         detectadas = _detectar_entidades_con_llm(texto_completo)
 
         leyes    = detectadas.get("leyes", [])
         personas = detectadas.get("personas", [])
 
-        # 3. Por cada entidad: Wikipedia + Groq generan la explicación
         entidades = []
 
         for ley in leyes:
@@ -493,7 +458,6 @@ def extraer_entidades(video_id: str, pregunta: str = "", top_k: int = 10) -> dic
 
 # ─────────────────────────────────────────────────────────────
 # FUNCIÓN 4: CHUNKING AMPLIADO
-# Devuelve el fragmento exacto + todo el contexto de esa intervención.
 # ─────────────────────────────────────────────────────────────
 
 def obtener_intervencion_completa(video_id: str, ponente: str, inicio: float, fin: float) -> dict:
@@ -538,10 +502,8 @@ def obtener_intervencion_completa(video_id: str, ponente: str, inicio: float, fi
                 "error":             "No se encontraron fragmentos para esa intervención."
             }
 
-        # Ordenar por tiempo
         pares = sorted(zip(metadatos, documentos), key=lambda x: x[0].get("inicio", 0))
 
-        # El fragmento exacto: el que más se solapa
         texto_exacto = ""
         for meta, doc in pares:
             if meta["inicio"] <= fin and meta["fin"] >= inicio:
