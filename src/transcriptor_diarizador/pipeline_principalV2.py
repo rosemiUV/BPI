@@ -177,6 +177,6 @@ def ejecutar_pipeline_lote(lista_urls: list, callback_progreso=None):
 
 if __name__ == "__main__":
     mis_videos = [
-        "https://www.youtube.com/watch?v=qlTJyCRe76Y"
+        "https://www.youtube.com/watch?v=ha4phWxfjPM"
     ]
     ejecutar_pipeline_lote(mis_videos)
