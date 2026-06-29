@@ -44,8 +44,6 @@ def descargar_audio_youtube(url: str, directorio_salida: Path) -> Path:
     try:
         comando = [
             "yt-dlp",
-            "--js-runtimes", "node",
-            "--extractor-args", "youtube:player_client=android",
             "-f", "ba/b",
             "-x", "--audio-format", "wav",
             "--ffmpeg-location", directorio_ffmpeg,

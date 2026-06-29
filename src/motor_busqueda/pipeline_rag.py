@@ -170,8 +170,8 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
         "Puedes usar el historial de la conversación para dar respuestas de seguimiento."
     )
 
-    # 6. Llamar a Ollama 
-    respuesta_llm = _llamar_ollama(system, mensajes)
+    # 6. Llamar a Groq (en la nube)
+    respuesta_llm = _llamar_groq(system, mensajes)
 
     # 7. Guardar en historial (pregunta + respuesta)
     if video_id not in _historial:
@@ -240,21 +240,28 @@ def generar_resumen(video_id: str, n_fragmentos: int = 20) -> dict:
 
     system = (
         "Eres un asistente especializado en sesiones parlamentarias españolas. "
-        "Tu tarea es hacer un resumen claro y organizado."
+        "Tu tarea es hacer un resumen claro y organizado. "
+        "DEBES estructurar tu respuesta EXACTAMENTE con los siguientes dos encabezados:\n"
+        "### 1. Índice de Temas\n"
+        "### 2. Resumen Global"
     )
 
     mensaje = (
         f"A continuación tienes fragmentos de una sesión parlamentaria.\n\n"
         f"{contexto}\n\n"
-        "Por favor, genera un resumen en español que explique:\n"
-        "1. Los temas principales que se debatieron.\n"
-        "2. Las posturas más destacadas de los ponentes.\n"
-        "3. Cualquier acuerdo o desacuerdo relevante.\n"
-        "Sé claro y directo. Máximo 300 palabras."
+        "Por favor, genera tu respuesta siguiendo esta estructura estricta:\n\n"
+        "### 1. Índice de Temas\n"
+        "- Escribe una lista de viñetas con los temas principales que se debatieron.\n"
+        "- Usa el formato: '**Tema**: Breve descripción'.\n\n"
+        "### 2. Resumen Global\n"
+        "Escribe un resumen en párrafos continuos que explique:\n"
+        "- Las posturas más destacadas de los ponentes.\n"
+        "- Cualquier acuerdo o desacuerdo relevante.\n"
+        "Sé claro y directo. Máximo 300 palabras en el resumen global."
     )
 
     try:
-        resumen = _llamar_ollama(system, [{"role": "user", "content": mensaje}])
+        resumen = _llamar_groq(system, [{"role": "user", "content": mensaje}])
         return {"video_id": video_id, "resumen": resumen, "error": None}
     except Exception as e:
         return {"video_id": video_id, "resumen": "", "error": str(e)}
