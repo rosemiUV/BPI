@@ -27,7 +27,7 @@ collection = client.get_or_create_collection(
     embedding_function=ef
 )
 
-print(f"Conectado a ChromaDB en {CHROMA_HOST}:{CHROMA_PORT}")
+print(f"Conectado a ChromaDB local en ./chroma_db_local")
 print(f"Coleccion: '{NOMBRE_COLECCION}' — {collection.count()} fragmentos")
 
 
