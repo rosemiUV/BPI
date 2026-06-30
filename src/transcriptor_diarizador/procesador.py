@@ -111,10 +111,16 @@ def transcribir_y_diarizar(ruta_audio: Path, idioma: str = "es") -> list:
 
     # 3. Diarizar con PyAnnote a través de WhisperX
     print("Ejecutando diarización integrada (PyAnnote via WhisperX)...")
-    pipeline_diar = whisperx.diarize.DiarizationPipeline(
-        token=HF_TOKEN,
-        device=torch.device(dispositivo),
-    )
+    try:
+        pipeline_diar = whisperx.diarize.DiarizationPipeline(
+            token=HF_TOKEN,
+            device=torch.device(dispositivo),
+        )
+    except TypeError:
+        pipeline_diar = whisperx.diarize.DiarizationPipeline(
+            use_auth_token=HF_TOKEN,
+            device=torch.device(dispositivo),
+        )
     
     try:
         segmentos_diar = pipeline_diar(str(ruta_audio))
