@@ -44,7 +44,6 @@ def descargar_audio_youtube(url: str, directorio_salida: Path) -> Path:
     try:
         comando = [
             "yt-dlp",
-            "--extractor-args", "youtube:player_client=ios", # Workaround para evitar bloqueos
             "--force-overwrites", # Evitar que pregunte si queremos sobreescribir el archivo .webm
             "-f", "ba/b",
             "-x", "--audio-format", "wav",
