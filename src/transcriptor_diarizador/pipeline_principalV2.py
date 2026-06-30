@@ -8,6 +8,7 @@ warnings.filterwarnings("ignore")
 # Rutas absolutas corregidas para que funcione perfectamente con 'python -m'
 from src.transcriptor_diarizador.procesador import configurar_ffmpeg_local, descargar_audio_youtube, transcribir_y_diarizar
 from src.transcriptor_diarizador.fusionador_pruebaV2 import fusionar_datos_para_rag
+from src.transcriptor_diarizador.identificador_speakers_v5 import identificar_video
 from src.transcriptor_diarizador.cargador_chroma import subir_datos_a_chroma
 
 configurar_ffmpeg_local()
@@ -94,6 +95,21 @@ def ejecutar_pipeline_completo(url_video: str, callback_progreso=None):
         max_palabras=170,
     )
     print(f"Chunks generados: {len(chunks)} — guardados en: {ruta_json_final}")
+
+    # 4b. AVISO: Identificación de speakers (92%)
+    if callback_progreso:
+        callback_progreso({"video_id": video_id, "progreso": 92, "estado": "Identificando a los oradores (nombre y partido)..."})
+
+    # --- FASE 4b: IDENTIFICACIÓN DE SPEAKERS ---
+    print("\n--- FASE 4b: IDENTIFICACIÓN DE SPEAKERS ---")
+    ruta_json_identificado = identificar_video(
+        ruta_json_entrada=ruta_json_final,
+        usar_llm=True,
+    )
+    print(f"Speakers identificados — JSON final: {ruta_json_identificado}")
+
+    # El JSON identificado es el que se sube a ChromaDB de aquí en adelante
+    ruta_json_final = ruta_json_identificado
 
     # 4. AVISO: Base de datos (95%)
     if callback_progreso:
