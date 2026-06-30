@@ -44,13 +44,15 @@ def descargar_audio_youtube(url: str, directorio_salida: Path) -> Path:
     try:
         comando = [
             "yt-dlp",
+            "--extractor-args", "youtube:player_client=ios", # Workaround para evitar bloqueos
+            "--force-overwrites", # Evitar que pregunte si queremos sobreescribir el archivo .webm
             "-f", "ba/b",
             "-x", "--audio-format", "wav",
             "--ffmpeg-location", directorio_ffmpeg,
             "-o", str(archivo_salida),
             url,
         ]
-        subprocess.run(comando, capture_output=True, text=True, check=True)
+        subprocess.run(comando, capture_output=True, text=True, check=True, stdin=subprocess.DEVNULL)
         print(f"Audio descargado en: {archivo_salida}")
         return archivo_salida
     except subprocess.CalledProcessError as e:
