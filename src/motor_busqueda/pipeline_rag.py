@@ -5,6 +5,7 @@ import urllib.parse
 import chromadb
 from chromadb.utils import embedding_functions
 from mistralai import Mistral
+from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -77,7 +78,7 @@ def _construir_contexto(documentos: list, metadatos: list) -> str:
 def _llamar_mistral(system: str, messages: list[dict]) -> str:
     """
     Llama a Mistral en la nube.
-    Reemplaza tanto a _llamar_ollama como a _llamar_groq.
+    Se usa en: buscar() y generar_resumen()
     Requiere MISTRAL_API_KEY en el archivo .env
     """
     api_key = os.environ.get("MISTRAL_API_KEY")
@@ -94,6 +95,29 @@ def _llamar_mistral(system: str, messages: list[dict]) -> str:
     )
     return respuesta.choices[0].message.content
 
+
+
+
+def _llamar_groq(system: str, messages: list[dict]) -> str:
+    """
+    Llama a Llama-3 en la nube con Groq.
+    Se usa SOLO en extraer_entidades(), porque hace muchas llamadas seguidas
+    y Groq tiene un limite gratuito mas generoso que Mistral (30 rpm vs 2 rpm).
+    Requiere GROQ_API_KEY en el archivo .env
+    """
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError(
+            "No se encontro GROQ_API_KEY. "
+            "Asegurate de tenerla en el archivo .env"
+        )
+    cliente = Groq(api_key=api_key)
+    respuesta = cliente.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[{"role": "system", "content": system}] + messages,
+        temperature=0.3
+    )
+    return respuesta.choices[0].message.content
 
 # ─────────────────────────────────────────────────────────────
 # FUNCIÓN 1: BÚSQUEDA CON MEMORIA
@@ -277,8 +301,8 @@ def _buscar_wikipedia(termino: str) -> str:
 
 def _detectar_entidades_con_llm(texto: str) -> dict:
     """
-    Usa Mistral para detectar leyes y personas en el texto parlamentario.
-    Devuelve {"leyes": [...], "personas": [...]}
+    Usa Mistral para detectar leyes, personas, lugares e instituciones en el texto parlamentario.
+    Devuelve {"leyes": [...], "personas": [...], "lugares": [...], "instituciones": [...]}
     """
     system = (
         "Eres un extractor de entidades de textos parlamentarios españoles. "
@@ -294,17 +318,24 @@ def _detectar_entidades_con_llm(texto: str) -> dict:
         "MUY IMPORTANTE: si solo aparece el apellido (ej: 'Sánchez', 'Feijóo'), "
         "deduce el nombre completo usando tu conocimiento de la política española actual "
         "(ej: 'Pedro Sánchez', 'Alberto Núñez Feijóo'). "
-        "Si hay ambigüedad, usa el cargo mencionado en el texto para decidir.\n\n"
+        "Si hay ambigüedad, usa el cargo mencionado en el texto para decidir.\n"
+        "3. LUGARES: países, comunidades autónomas, ciudades o pueblos mencionados "
+        "(ej: 'Cataluña', 'Francia', 'Sevilla', 'Vitoria-Gasteiz').\n"
+        "4. INSTITUCIONES: organismos, ministerios, partidos políticos, tribunales u "
+        "otras instituciones mencionadas "
+        "(ej: 'Tribunal Constitucional', 'Ministerio de Hacienda', 'Partido Popular').\n\n"
         "Devuelve SOLO este JSON (sin nada más):\n"
         '{"leyes": ["nombre completo ley 1", "..."], '
-        '"personas": ["Nombre Completo Persona 1", "..."]}'
+        '"personas": ["Nombre Completo Persona 1", "..."], '
+        '"lugares": ["Lugar 1", "..."], '
+        '"instituciones": ["Institución 1", "..."]}'
     )
     try:
-        respuesta = _llamar_mistral(system, [{"role": "user", "content": mensaje}])
+        respuesta = _llamar_groq(system, [{"role": "user", "content": mensaje}])
         respuesta_limpia = respuesta.strip().strip("```json").strip("```").strip()
         return json.loads(respuesta_limpia)
     except Exception:
-        return {"leyes": [], "personas": []}
+        return {"leyes": [], "personas": [], "lugares": [], "instituciones": []}
 
 
 def _resolver_nombre_wikipedia(nombre: str, tipo: str) -> str:
@@ -342,7 +373,7 @@ def _resolver_nombre_wikipedia(nombre: str, tipo: str) -> str:
             "Responde solo con el título, nada más."
         )
     try:
-        titulo_wikipedia = _llamar_mistral(system, [{"role": "user", "content": mensaje}])
+        titulo_wikipedia = _llamar_groq(system, [{"role": "user", "content": mensaje}])
         titulo_limpio = titulo_wikipedia.strip().strip('"').strip("'")
         resultado = _buscar_wikipedia(titulo_limpio)
         if resultado and len(resultado) > 50:
@@ -371,6 +402,18 @@ def _explicar_entidad(nombre: str, tipo: str) -> str:
             "para qué sirve y cuándo entró en vigor. "
             "Sé directo y claro, como si se lo explicaras a alguien sin conocimientos jurídicos."
         )
+    elif tipo == "lugar":
+        instruccion = (
+            f"Explica en 2-3 frases qué es o dónde está '{nombre}' "
+            "y por qué es relevante en el contexto de la política española. "
+            "Sé directo y claro."
+        )
+    elif tipo == "institucion":
+        instruccion = (
+            f"Explica en 2-3 frases qué es '{nombre}': "
+            "qué función tiene y por qué aparece en debates parlamentarios. "
+            "Sé directo y claro."
+        )
     else:
         instruccion = (
             f"Explica en 2-3 frases quién es '{nombre}' en el contexto "
@@ -383,7 +426,7 @@ def _explicar_entidad(nombre: str, tipo: str) -> str:
     mensaje = f"{instruccion}\n\n{fuente}"
 
     try:
-        return _llamar_mistral(system, [{"role": "user", "content": mensaje}])
+        return _llamar_groq(system, [{"role": "user", "content": mensaje}])
     except Exception:
         return info_wikipedia[:300] if info_wikipedia else "No se pudo obtener información."
 
@@ -427,8 +470,10 @@ def extraer_entidades(video_id: str, pregunta: str = "", top_k: int = 10) -> dic
         texto_completo = " ".join(documentos)
         detectadas = _detectar_entidades_con_llm(texto_completo)
 
-        leyes    = detectadas.get("leyes", [])
-        personas = detectadas.get("personas", [])
+        leyes         = detectadas.get("leyes", [])
+        personas      = detectadas.get("personas", [])
+        lugares       = detectadas.get("lugares", [])
+        instituciones = detectadas.get("instituciones", [])
 
         entidades = []
 
@@ -448,6 +493,24 @@ def extraer_entidades(video_id: str, pregunta: str = "", top_k: int = 10) -> dic
                 "nombre":      persona,
                 "tipo":        "persona",
                 "explicacion": _explicar_entidad(persona, "persona")
+            })
+
+        for lugar in lugares:
+            if not lugar or len(lugar) < 3:
+                continue
+            entidades.append({
+                "nombre":      lugar,
+                "tipo":        "lugar",
+                "explicacion": _explicar_entidad(lugar, "lugar")
+            })
+
+        for institucion in instituciones:
+            if not institucion or len(institucion) < 3:
+                continue
+            entidades.append({
+                "nombre":      institucion,
+                "tipo":        "institucion",
+                "explicacion": _explicar_entidad(institucion, "institucion")
             })
 
         return {"video_id": video_id, "entidades": entidades, "error": None}
