@@ -54,7 +54,7 @@ function App() {
       progresoInterno.current = progresoCargaReal;
     }
 
-    // Nuevos límites ajustados para dar casi toda la barra a la IA (Fase 2)
+    // Nuevos límites ajustados
     // 5%  -> Descargando Audio (Límite 9%)
     // 10% -> Diarizando (Límite 89%)
     // 90% -> Chunking (Límite 94%)
@@ -68,17 +68,15 @@ function App() {
     const interval = setInterval(() => {
       // Calculamos la distancia restante hasta el límite
       const distancia = limiteAnimado - progresoInterno.current;
-      
+
       if (distancia > 0) {
         // Avanzamos un porcentaje de la distancia
         let incremento = distancia * 0.005;
-        // Incremento base un poco mayor (0.05) para que no parezca que está "clavado" 
-        // cuando tiene que recorrer un tramo muy largo de golpe (del 10 al 89)
         if (incremento < 0.05) incremento = 0.05;
-        
+
         progresoInterno.current += incremento;
         if (progresoInterno.current > limiteAnimado) progresoInterno.current = limiteAnimado;
-        
+
       } else if (progresoInterno.current >= limiteAnimado && progresoInterno.current < limiteAnimado + 0.98) {
         // TRUCO PROFESIONAL: Si ya llegamos al "límite" y la IA sigue procesando,
         // avanzamos cantidades microscópicas (ej. 0.005 por segundo)
@@ -815,8 +813,8 @@ function App() {
                         key={msg.id}
                         onClick={() => msg.role === 'bot' && msg.fuentes_top_k?.length > 0 && setMensajeActivo(msg)}
                         className={`max-w-[85%] rounded-3xl p-4 shadow-sm transition-all ${msg.role === 'user'
-                            ? 'bg-blue-600 text-white self-end rounded-br-md shadow-blue-500/20'
-                            : `bg-white text-[#1d1d1f] self-start rounded-bl-md border border-gray-100 cursor-pointer hover:border-blue-200 hover:shadow-md ${mensajeActivo?.id === msg.id ? 'ring-2 ring-blue-500/30 bg-blue-50/30' : ''}`
+                          ? 'bg-blue-600 text-white self-end rounded-br-md shadow-blue-500/20'
+                          : `bg-white text-[#1d1d1f] self-start rounded-bl-md border border-gray-100 cursor-pointer hover:border-blue-200 hover:shadow-md ${mensajeActivo?.id === msg.id ? 'ring-2 ring-blue-500/30 bg-blue-50/30' : ''}`
                           }`}
                       >
                         <p className="leading-relaxed whitespace-pre-wrap text-[15px]">
