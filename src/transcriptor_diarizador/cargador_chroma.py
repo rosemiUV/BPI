@@ -5,7 +5,7 @@ from pathlib import Path
 # =============================================================
 # CONFIGURACIÓN DE LA BASE DE DATOS
 # =============================================================
-MODO_LOCAL   = False
+MODO_LOCAL   = True
 CHROMA_HOST  = "chromadb-production-8466.up.railway.app"
 CHROMA_PORT  = 443
 NOMBRE_COLECCION = "plenario"

@@ -20,13 +20,9 @@ NOMBRE_COLECCION = "plenario"
 
 ef = embedding_functions.DefaultEmbeddingFunction()
 
-client = chromadb.HttpClient(
-    host=CHROMA_HOST,
-    port=CHROMA_PORT,
-    ssl=True
-)
+client = chromadb.PersistentClient(path="./chroma_db_local")
 
-collection = client.get_collection(
+collection = client.get_or_create_collection(
     name=NOMBRE_COLECCION,
     embedding_function=ef
 )
