@@ -187,7 +187,7 @@ def _llamar_groq(system: str, messages: list[dict]) -> str:
 # FUNCIÓN 1: BÚSQUEDA CON MEMORIA
 # ─────────────────────────────────────────────────────────────
 
-def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
+def buscar(pregunta: str, video_id: str, top_k: int = 10) -> dict:
     """
     Busca fragmentos relevantes y responde usando Mistral en la nube.
     Recuerda las preguntas anteriores del mismo vídeo (memoria de conversación).
@@ -250,6 +250,12 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
         "parlamentario), en vez de un único párrafo genérico.\n"
         "- CITA siempre por nombre y, si se conoce, por partido o grupo parlamentario "
         "(ej. 'Pérez Masó (Junts) defendió que...'), en vez de decir simplemente 'un diputado dijo...'.\n"
+        "- IMPORTANTE: usa EXACTAMENTE la etiqueta que aparece delante de cada fragmento en el "
+        "contexto (puede ser un nombre real como 'Pérez Masó', o un identificador técnico como "
+        "'SPEAKER_04' si no hay nombre disponible). NUNCA inventes ni sustituyas esa etiqueta por "
+        "numeraciones propias como 'Ponente 1', 'Ponente 2', 'Orador A', etc. Si la etiqueta es un "
+        "identificador técnico tipo SPEAKER_XX, repítelo tal cual; no lo hace más elegante ni claro "
+        "para el usuario y genera confusión con lo que se ve en el vídeo.\n"
         "- Puedes usar el historial de la conversación para dar respuestas de seguimiento coherentes."
     )
 
@@ -318,7 +324,10 @@ def generar_resumen(video_id: str, n_fragmentos: int = 40) -> dict:
         "Tu tarea es hacer un resumen claro, organizado y FIEL AL TEXTO ORIGINAL. "
         "DEBES estructurar tu respuesta EXACTAMENTE con los siguientes dos encabezados:\n"
         "### 1. Índice de Temas\n"
-        "### 2. Resumen Global"
+        "### 2. Resumen Global\n\n"
+        "IMPORTANTE: cuando cites a un ponente, usa EXACTAMENTE la etiqueta que aparece delante "
+        "de cada fragmento (nombre real, o 'SPEAKER_XX' si no hay nombre disponible). "
+        "NUNCA inventes numeraciones propias como 'Ponente 1', 'Ponente 2', etc."
     )
 
     mensaje = (
