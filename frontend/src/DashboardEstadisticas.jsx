@@ -26,6 +26,17 @@ export default function DashboardEstadisticas({ data }) {
 
   const { barras, tarta } = data;
 
+  if (!barras || barras.length === 0 || !tarta || tarta.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-64 text-white/50 bg-white/5 rounded-xl border border-white/10 m-6">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-white/70 mb-2">No hay datos disponibles</p>
+          <p className="text-sm">El vídeo actual no tiene identificados ponentes o partidos.</p>
+        </div>
+      </div>
+    );
+  }
+
   // Extraer partidos únicos para los filtros
   const partidosDisponibles = ['Todos', ...Array.from(new Set(barras.map(b => b.partido)))];
 
