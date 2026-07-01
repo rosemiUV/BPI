@@ -28,8 +28,8 @@ def calcular_tiempos_dashboard(ruta_json: str | Path):
 
     registros = []
     for chunk in datos:
-        nombre = chunk.get("nombre", "DESCONOCIDO")
-        partido = chunk.get("partido", "SIN PARTIDO")
+        nombre = chunk.get("nombre") or "DESCONOCIDO"
+        partido = chunk.get("partido") or "SIN PARTIDO"
         duracion = chunk.get("duracion", chunk.get("fin", 0) - chunk.get("inicio", 0))
         registros.append({"nombre": nombre, "partido": partido, "duracion": duracion})
 
