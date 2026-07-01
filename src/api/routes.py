@@ -6,7 +6,7 @@ import asyncio
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from datetime import datetime
 from src.api.schemas import SearchRequest, SearchResponse
-from src.api.schemas import UrlVideoRequest, ContextRequest, SummaryRequest, EntitiesRequest
+from src.api.schemas import UrlVideoRequest, ContextRequest, SummaryRequest, EntitiesRequest, StatsRequest
 from src.transcriptor_diarizador.pipeline_principalV2 import ejecutar_pipeline_lote
 from typing import Dict
 from starlette.concurrency import run_in_threadpool
@@ -212,3 +212,46 @@ def get_entities(request: EntitiesRequest):
     except Exception as e:
         print(f"Error extrayendo entidades: {e}")
         raise HTTPException(status_code=500, detail="Error extrayendo las entidades.")
+
+@router.post('/stats')
+def get_stats(request: StatsRequest):
+    """
+    Devuelve los datos procesados para generar los gráficos de tiempo de habla en el frontend.
+    """
+    from pathlib import Path
+    from src.transcriptor_diarizador.analisis_tiempos import calcular_tiempos_dashboard
+    import numpy as np
+    
+    try:
+        # Construimos la ruta al archivo JSON identificado
+        ruta_script = Path(__file__).resolve().parent
+        ruta_json = ruta_script.parent.parent / "data" / "resultados_finales" / f"datos_rag_{request.video_id}_identificado.json"
+        
+        # Si no existe el identificado, intentamos con el crudo
+        if not ruta_json.exists():
+            ruta_json = ruta_script.parent.parent / "data" / "resultados_finales" / f"datos_rag_{request.video_id}.json"
+            
+        if not ruta_json.exists():
+            return {"error": "No se encontraron datos procesados para este vídeo."}
+            
+        df_barras, df_tarta = calcular_tiempos_dashboard(ruta_json)
+        
+        if df_barras is None or df_tarta is None:
+            return {"error": "No se pudo procesar la información de tiempos."}
+            
+        # Reemplazar NaN e Infinity por None antes de convertir a dict
+        df_barras = df_barras.replace([np.inf, -np.inf], np.nan).fillna(0)
+        df_tarta = df_tarta.replace([np.inf, -np.inf], np.nan).fillna(0)
+        
+        # Convertimos los DataFrames a listas de diccionarios
+        datos_barras = df_barras.to_dict(orient='records')
+        datos_tarta = df_tarta.to_dict(orient='records')
+        
+        return {
+            "video_id": request.video_id,
+            "barras": datos_barras,
+            "tarta": datos_tarta
+        }
+    except Exception as e:
+        print(f"Error generando estadísticas de tiempo: {e}")
+        raise HTTPException(status_code=500, detail="Error generando estadísticas.")
