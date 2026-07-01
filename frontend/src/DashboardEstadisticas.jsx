@@ -16,6 +16,27 @@ const MAPA_COLORES = {
 export default function DashboardEstadisticas({ data }) {
   const [filtroPartido, setFiltroPartido] = useState('Todos');
 
+  const barras = data?.barras || [];
+  const tarta = data?.tarta || [];
+
+  // Extraer partidos únicos para los filtros (seguro porque barras es al menos [])
+  const partidosDisponibles = ['Todos', ...Array.from(new Set(barras.map(b => b.partido)))];
+
+  // Filtrar y preparar datos para el BarChart (useMemo DEBE ir antes de los returns tempranos)
+  const barrasFiltradas = useMemo(() => {
+    let filtradas = barras;
+    if (filtroPartido !== 'Todos') {
+      filtradas = barras.filter(b => b.partido === filtroPartido);
+    }
+    return filtradas.map(b => ({
+      nombre: b.nombre,
+      partido: b.partido,
+      porcentaje_global: Number((b.porcentaje_global || 0).toFixed(1)),
+      porcentaje_relativo: Number((b.porcentaje_relativo || 0).toFixed(1)),
+      color: MAPA_COLORES[b.partido] || '#808080'
+    }));
+  }, [barras, filtroPartido]);
+
   if (!data || data.error) {
     return (
       <div className="flex justify-center items-center h-64 text-red-500 bg-red-500/10 rounded-xl">
@@ -24,9 +45,7 @@ export default function DashboardEstadisticas({ data }) {
     );
   }
 
-  const { barras, tarta } = data;
-
-  if (!barras || barras.length === 0 || !tarta || tarta.length === 0) {
+  if (barras.length === 0 || tarta.length === 0) {
     return (
       <div className="flex justify-center items-center h-64 text-white/50 bg-white/5 rounded-xl border border-white/10 m-6">
         <div className="text-center">
@@ -37,31 +56,12 @@ export default function DashboardEstadisticas({ data }) {
     );
   }
 
-  // Extraer partidos únicos para los filtros
-  const partidosDisponibles = ['Todos', ...Array.from(new Set(barras.map(b => b.partido)))];
-
-  // Preparar datos para el PieChart
+  // Preparar datos para el PieChart (puede ir aquí o antes, no es un hook)
   const datosTarta = tarta.map(item => ({
     name: item.partido,
     value: item.duracion,
     color: MAPA_COLORES[item.partido] || '#808080'
   }));
-
-  // Filtrar y preparar datos para el BarChart
-  const barrasFiltradas = useMemo(() => {
-    let filtradas = barras;
-    if (filtroPartido !== 'Todos') {
-      filtradas = barras.filter(b => b.partido === filtroPartido);
-    }
-    // Formatear para el gráfico
-    return filtradas.map(b => ({
-      nombre: b.nombre,
-      partido: b.partido,
-      porcentaje_global: Number(b.porcentaje_global.toFixed(1)),
-      porcentaje_relativo: Number(b.porcentaje_relativo.toFixed(1)),
-      color: MAPA_COLORES[b.partido] || '#808080'
-    }));
-  }, [barras, filtroPartido]);
 
   // Tooltip personalizado para la tarta
   const CustomPieTooltip = ({ active, payload }) => {
