@@ -327,8 +327,8 @@ function App() {
     setProgresoCargaReal(0);
     setEstadoCarga('Conectando al servidor...');
 
-    // 1. Generar ID único para este cliente/petición
-    const clientId = crypto.randomUUID();
+    // 1. Generar ID único para este cliente/petición (Compatible con HTTP)
+    const clientId = Date.now().toString(36) + Math.random().toString(36).substring(2);
 
     // 2. Conectar al WebSocket
     const wsUrl = `${WS_URL}/api/ws/progress/${clientId}`;

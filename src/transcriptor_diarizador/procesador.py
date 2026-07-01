@@ -41,6 +41,10 @@ def descargar_audio_youtube(url: str, directorio_salida: Path) -> Path:
     if archivo_salida.exists():
         archivo_salida.unlink()
     directorio_ffmpeg = configurar_ffmpeg_local()
+    
+    # Buscar cookies.txt
+    ruta_cookies = Path(__file__).parent.parent.parent / "cookies.txt"
+    
     try:
         comando = [
             "yt-dlp",
@@ -48,9 +52,14 @@ def descargar_audio_youtube(url: str, directorio_salida: Path) -> Path:
             "-f", "ba/b",
             "-x", "--audio-format", "wav",
             "--ffmpeg-location", directorio_ffmpeg,
-            "-o", str(archivo_salida),
-            url,
         ]
+        
+        if ruta_cookies.exists():
+            print("Usando archivo cookies.txt para esquivar bloqueos de YouTube")
+            comando.extend(["--cookies", str(ruta_cookies)])
+            
+        comando.extend(["-o", str(archivo_salida), url])
+        
         subprocess.run(comando, capture_output=True, text=True, check=True, stdin=subprocess.DEVNULL)
         print(f"Audio descargado en: {archivo_salida}")
         return archivo_salida

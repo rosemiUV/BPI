@@ -19,6 +19,12 @@ def obtener_metadatos_youtube(url: str):
     try:
         import yt_dlp
         ydl_opts = {"quiet": True, "skip_download": True}
+        
+        # Buscar cookies.txt en la raíz del proyecto
+        ruta_cookies = Path(__file__).parent.parent.parent / "cookies.txt"
+        if ruta_cookies.exists():
+            ydl_opts["cookiefile"] = str(ruta_cookies)
+            
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             titulo = info.get("title", "Sesión Parlamentaria")
