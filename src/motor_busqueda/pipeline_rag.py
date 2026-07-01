@@ -4,8 +4,8 @@ import urllib.request
 import urllib.parse
 import chromadb
 from chromadb.utils import embedding_functions
+from mistralai import Mistral
 from groq import Groq
-from mistralai.client.sdk import Mistral
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,14 +20,18 @@ NOMBRE_COLECCION = "plenario"
 
 ef = embedding_functions.DefaultEmbeddingFunction()
 
-client = chromadb.PersistentClient(path="./chroma_db_local")
+client = chromadb.HttpClient(
+    host=CHROMA_HOST,
+    port=CHROMA_PORT,
+    ssl=True
+)
 
-collection = client.get_or_create_collection(
+collection = client.get_collection(
     name=NOMBRE_COLECCION,
     embedding_function=ef
 )
 
-print(f"Conectado a ChromaDB local en ./chroma_db_local")
+print(f"Conectado a ChromaDB en {CHROMA_HOST}:{CHROMA_PORT}")
 print(f"Coleccion: '{NOMBRE_COLECCION}' — {collection.count()} fragmentos")
 
 
@@ -58,16 +62,39 @@ def _segundos_a_mmss(segundos: float) -> str:
     return f"{s // 60:02d}:{s % 60:02d}"
 
 
+def _nombre_mostrar(meta: dict) -> str:
+    """
+    Devuelve el nombre real del ponente si el sistema lo ha identificado
+    (campo 'nombre' del JSON, ej: 'Francina Armengol').
+
+    Si no hay nombre real (campo 'nombre' vacío o null, algo que pasa cuando
+    'estado_id' es "DESCONOCIDO" o "AMBIGUO"), cae de vuelta al identificador
+    técnico del speaker (campo 'ponente', ej: 'SPEAKER_14') para no dejarlo
+    en blanco.
+
+    Opcionalmente añade el partido entre paréntesis si se conoce.
+    """
+    nombre = meta.get("nombre")
+    if not nombre:
+        nombre = meta.get("ponente", "Desconocido")
+
+    partido = meta.get("partido")
+    if partido:
+        return f"{nombre} ({partido})"
+    return nombre
+
+
 def _construir_contexto(documentos: list, metadatos: list) -> str:
     """
     Construye el bloque de contexto que se mete al LLM.
-    Incluye ponente, tiempo y texto de cada fragmento.
+    Incluye el NOMBRE REAL del ponente (si se conoce), tiempo y texto de cada fragmento.
     """
     lineas = []
-    for i, (doc, meta) in enumerate(zip(documentos, metadatos), start=1):
+    for doc, meta in zip(documentos, metadatos):
         t_inicio = _segundos_a_mmss(meta["inicio"])
         t_fin    = _segundos_a_mmss(meta["fin"])
-        lineas.append(f"Ponente {i}: ({t_inicio} - {t_fin}): [{doc}]")
+        nombre   = _nombre_mostrar(meta)
+        lineas.append(f"{nombre} ({t_inicio} - {t_fin}): [{doc}]")
     return "\n".join(lineas)
 
 
@@ -213,10 +240,17 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
 
     system = (
         "Eres un asistente especializado en sesiones parlamentarias españolas. "
-        "Responde usando ÚNICAMENTE los fragmentos del contexto que se te dan. "
-        "Si la respuesta no está en los fragmentos, dilo claramente. "
-        "Sé conciso y cita al ponente cuando sea relevante. "
-        "Puedes usar el historial de la conversación para dar respuestas de seguimiento."
+        "Responde ÚNICAMENTE con información que esté en los fragmentos proporcionados; "
+        "si la respuesta no está en los fragmentos, dilo claramente en vez de inventarla. "
+        "Dentro de ese límite, sé todo lo útil y completo posible:\n"
+        "- Si varios ponentes hablan del mismo tema, SINTETIZA sus posturas en vez de listarlas "
+        "de forma aislada: señala en qué coinciden, en qué difieren y por qué.\n"
+        "- Si la pregunta tiene varios aspectos o hay varias posturas distintas, ESTRUCTURA la "
+        "respuesta en apartados breves (por ejemplo, un apartado por postura o por grupo "
+        "parlamentario), en vez de un único párrafo genérico.\n"
+        "- CITA siempre por nombre y, si se conoce, por partido o grupo parlamentario "
+        "(ej. 'Pérez Masó (Junts) defendió que...'), en vez de decir simplemente 'un diputado dijo...'.\n"
+        "- Puedes usar el historial de la conversación para dar respuestas de seguimiento coherentes."
     )
 
     # 6. Llamar a Mistral
@@ -232,7 +266,7 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
     fuentes_top_k = []
     for doc, meta in zip(documentos, metadatos):
         fuentes_top_k.append({
-            "ponente":      meta.get("ponente", "Desconocido"),
+            "ponente":      _nombre_mostrar(meta),
             "texto":        doc,
             "enlace_video": meta.get("url_exacta_tiempo", ""),
             "inicio":       _segundos_a_mmss(meta["inicio"]),
@@ -340,9 +374,15 @@ def _buscar_wikipedia(termino: str) -> str:
 
 def _detectar_entidades_con_llm(texto: str) -> dict:
     """
-    Usa Groq para detectar leyes, personas, lugares e instituciones en el texto parlamentario,
+    Usa Groq para detectar leyes, lugares e instituciones en el texto parlamentario,
     ya que es más rápido y tiene un límite de llamadas más alto que Mistral.
-    Devuelve {"leyes": [...], "personas": [...], "lugares": [...], "instituciones": [...]}
+
+    NOTA: ya NO se le pide detectar personas aquí. Las personas (ponentes) ya vienen
+    identificadas con nombre y partido en los metadatos de ChromaDB gracias al sistema
+    de diarización, así que pedirle al LLM que las "adivine" leyendo el texto es
+    redundante y menos fiable (ver _extraer_personas_de_metadatos).
+
+    Devuelve {"leyes": [...], "lugares": [...], "instituciones": [...]}
     """
     system = (
         "Eres un extractor de entidades de textos parlamentarios españoles. "
@@ -354,19 +394,13 @@ def _detectar_entidades_con_llm(texto: str) -> dict:
         "Extrae todas las entidades relevantes que aparezcan:\n"
         "1. LEYES: leyes, decretos, normativas o reglamentos mencionados. "
         "Incluye el nombre completo si aparece (ej: 'Ley Orgánica 3/2007').\n"
-        "2. PERSONAS: políticos, ministros, presidentes u otras figuras públicas mencionadas. "
-        "MUY IMPORTANTE: si solo aparece el apellido (ej: 'Sánchez', 'Feijóo'), "
-        "deduce el nombre completo usando tu conocimiento de la política española actual "
-        "(ej: 'Pedro Sánchez', 'Alberto Núñez Feijóo'). "
-        "Si hay ambigüedad, usa el cargo mencionado en el texto para decidir.\n"
-        "3. LUGARES: países, comunidades autónomas, ciudades o pueblos mencionados "
+        "2. LUGARES: países, comunidades autónomas, ciudades o pueblos mencionados "
         "(ej: 'Cataluña', 'Francia', 'Sevilla', 'Vitoria-Gasteiz').\n"
-        "4. INSTITUCIONES: organismos, ministerios, partidos políticos, tribunales u "
+        "3. INSTITUCIONES: organismos, ministerios, partidos políticos, tribunales u "
         "otras instituciones mencionadas "
         "(ej: 'Tribunal Constitucional', 'Ministerio de Hacienda', 'Partido Popular').\n\n"
         "Devuelve SOLO este JSON (sin nada más):\n"
         '{"leyes": ["nombre completo ley 1", "..."], '
-        '"personas": ["Nombre Completo Persona 1", "..."], '
         '"lugares": ["Lugar 1", "..."], '
         '"instituciones": ["Institución 1", "..."]}'
     )
@@ -375,7 +409,7 @@ def _detectar_entidades_con_llm(texto: str) -> dict:
         respuesta_limpia = respuesta.strip().strip("```json").strip("```").strip()
         return json.loads(respuesta_limpia)
     except Exception:
-        return {"leyes": [], "personas": [], "lugares": [], "instituciones": []}
+        return {"leyes": [], "lugares": [], "instituciones": []}
 
 
 def _resolver_nombre_wikipedia(nombre: str, tipo: str) -> str:
@@ -424,10 +458,39 @@ def _resolver_nombre_wikipedia(nombre: str, tipo: str) -> str:
     return ""
 
 
-def _explicar_entidad(nombre: str, tipo: str) -> str:
+def _extraer_personas_de_metadatos(metadatos: list) -> list[dict]:
+    """
+    Saca las personas (ponentes) DIRECTAMENTE de los metadatos de ChromaDB,
+    usando los campos 'nombre' y 'partido' que ya rellenó el sistema de
+    diarización/identificación de tu compañero.
+
+    Esto sustituye a pedirle al LLM que "adivine" quién es alguien leyendo
+    el texto (ej. deducir que 'Sánchez' es 'Pedro Sánchez'): es más preciso
+    porque usa una identificación ya verificada, en vez de una suposición.
+
+    Ignora fragmentos sin nombre identificado (estado_id "DESCONOCIDO" o "AMBIGUO",
+    donde meta["nombre"] es None), y no repite a la misma persona dos veces.
+
+    Devuelve una lista de dicts: [{"nombre": ..., "partido": ...}, ...]
+    """
+    vistos: dict[str, dict] = {}
+    for meta in metadatos:
+        nombre = meta.get("nombre")
+        if not nombre:
+            continue
+        if nombre not in vistos:
+            vistos[nombre] = {"nombre": nombre, "partido": meta.get("partido")}
+    return list(vistos.values())
+
+
+def _explicar_entidad(nombre: str, tipo: str, partido: str = None) -> str:
     """
     Busca información en Wikipedia y usa Mistral para generar una explicación breve.
-    tipo puede ser "ley" o "persona".
+    tipo puede ser "ley", "lugar", "institucion" o "persona".
+
+    Si ya conocemos el partido de la persona (porque viene de los metadatos
+    identificados, ver _extraer_personas_de_metadatos), se lo pasamos al LLM
+    directamente en vez de dejar que tenga que deducirlo o alucinarlo.
     """
     info_wikipedia = _resolver_nombre_wikipedia(nombre, tipo)
 
@@ -455,10 +518,11 @@ def _explicar_entidad(nombre: str, tipo: str) -> str:
             "Sé directo y claro."
         )
     else:
+        info_partido = f" Sabemos que está afiliado/a o pertenece al grupo '{partido}'." if partido else ""
         instruccion = (
             f"Explica en 2-3 frases quién es '{nombre}' en el contexto "
             "de la política española actual: qué cargo ocupa o ha ocupado "
-            "y por qué aparece en debates parlamentarios. "
+            f"y por qué aparece en debates parlamentarios.{info_partido} "
             "Sé directo y objetivo."
         )
 
@@ -490,11 +554,12 @@ def extraer_entidades(video_id: str, pregunta: str = "", top_k: int = 10) -> dic
                 query_texts=[pregunta],
                 n_results=top_k,
                 where={"video_id": {"$eq": video_id}},
-                include=["documents"]
+                include=["documents", "metadatas"]
             )
             documentos = resultados["documents"][0]
+            metadatos  = resultados["metadatas"][0]
         else:
-            documentos, _ = _muestrear_video_completo(video_id, top_k)
+            documentos, metadatos = _muestrear_video_completo(video_id, top_k)
 
         if not documentos:
             return {
@@ -503,11 +568,16 @@ def extraer_entidades(video_id: str, pregunta: str = "", top_k: int = 10) -> dic
                 "error":     f"No se encontraron fragmentos para el video '{video_id}'."
             }
 
+        # PERSONAS: se sacan directamente de los metadatos (nombre + partido ya
+        # identificados por diarización), NO se le pide al LLM que las adivine.
+        personas = _extraer_personas_de_metadatos(metadatos)
+
+        # LEYES, LUGARES E INSTITUCIONES: esto sí sigue necesitando al LLM,
+        # porque esa información no viene en los metadatos.
         texto_completo = " ".join(documentos)
         detectadas = _detectar_entidades_con_llm(texto_completo)
 
         leyes         = detectadas.get("leyes", [])
-        personas      = detectadas.get("personas", [])
         lugares       = detectadas.get("lugares", [])
         instituciones = detectadas.get("instituciones", [])
 
@@ -523,12 +593,12 @@ def extraer_entidades(video_id: str, pregunta: str = "", top_k: int = 10) -> dic
             })
 
         for persona in personas:
-            if not persona or len(persona) < 3:
-                continue
             entidades.append({
-                "nombre":      persona,
+                "nombre":      persona["nombre"],
                 "tipo":        "persona",
-                "explicacion": _explicar_entidad(persona, "persona")
+                "explicacion": _explicar_entidad(
+                    persona["nombre"], "persona", partido=persona.get("partido")
+                )
             })
 
         for lugar in lugares:
@@ -603,6 +673,10 @@ def obtener_intervencion_completa(video_id: str, ponente: str, inicio: float, fi
 
         pares = sorted(zip(metadatos, documentos), key=lambda x: x[0].get("inicio", 0))
 
+        # Usamos el nombre real (si se conoce) del primer fragmento encontrado,
+        # en vez de mostrar el identificador técnico SPEAKER_XX que se usó para filtrar.
+        nombre_real = _nombre_mostrar(pares[0][0])
+
         texto_exacto = ""
         for meta, doc in pares:
             if meta["inicio"] <= fin and meta["fin"] >= inicio:
@@ -619,7 +693,7 @@ def obtener_intervencion_completa(video_id: str, ponente: str, inicio: float, fi
         ]
 
         return {
-            "ponente":           ponente,
+            "ponente":           nombre_real,
             "inicio_mmss":       _segundos_a_mmss(inicio),
             "fin_mmss":          _segundos_a_mmss(fin),
             "texto_fragmento":   texto_exacto,
