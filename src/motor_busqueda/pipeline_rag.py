@@ -4,8 +4,8 @@ import urllib.request
 import urllib.parse
 import chromadb
 from chromadb.utils import embedding_functions
-from mistralai import Mistral
 from groq import Groq
+from mistralai.client.sdk import Mistral
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,18 +20,14 @@ NOMBRE_COLECCION = "plenario"
 
 ef = embedding_functions.DefaultEmbeddingFunction()
 
-client = chromadb.HttpClient(
-    host=CHROMA_HOST,
-    port=CHROMA_PORT,
-    ssl=True
-)
+client = chromadb.PersistentClient(path="./chroma_db_local")
 
-collection = client.get_collection(
+collection = client.get_or_create_collection(
     name=NOMBRE_COLECCION,
     embedding_function=ef
 )
 
-print(f"Conectado a ChromaDB en {CHROMA_HOST}:{CHROMA_PORT}")
+print(f"Conectado a ChromaDB local en ./chroma_db_local")
 print(f"Coleccion: '{NOMBRE_COLECCION}' — {collection.count()} fragmentos")
 
 

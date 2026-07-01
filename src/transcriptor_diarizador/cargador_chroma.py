@@ -5,7 +5,7 @@ from pathlib import Path
 # =============================================================
 # CONFIGURACIÓN DE LA BASE DE DATOS
 # =============================================================
-MODO_LOCAL   = False
+MODO_LOCAL   = True
 CHROMA_HOST  = "chromadb-production-8466.up.railway.app"
 CHROMA_PORT  = 443
 NOMBRE_COLECCION = "plenario"
@@ -76,6 +76,12 @@ def insertar_fragmentos(coleccion, fragmentos: list) -> tuple[int, int]:
                     "inicio":    fragmento["inicio"],
                     "fin":       fragmento["fin"],
                     "duracion":  fragmento["duracion"],
+                    # Campos del identificador de speakers (v2.7)
+                    "nombre":       fragmento.get("nombre") or "",
+                    "partido":      fragmento.get("partido") or "",
+                    "estado_id":    fragmento.get("estado_id") or "",
+                    "confianza_id": fragmento.get("confianza_id", 0.0),
+                    "metodo_id":    fragmento.get("metodo_id") or "",
                 }]
             )
             insertados += 1
