@@ -75,6 +75,47 @@ def _construir_contexto(documentos: list, metadatos: list) -> str:
     return "\n".join(lineas)
 
 
+def _muestrear_video_completo(video_id: str, n_fragmentos: int = 40) -> tuple[list, list]:
+    """
+    Coge fragmentos REPARTIDOS por todo el vídeo (principio, medio y final),
+    en vez de solo los primeros n_fragmentos por tiempo.
+
+    Esto es clave para que los "temas" generados reflejen todo el pleno,
+    no solo los primeros minutos.
+
+    Devuelve (documentos, metadatos) ya ordenados por tiempo.
+    """
+    resultados = collection.get(
+        where={"video_id": {"$eq": video_id}},
+        include=["documents", "metadatas"]
+    )
+
+    documentos = resultados.get("documents", [])
+    metadatos  = resultados.get("metadatas", [])
+
+    if not documentos:
+        return [], []
+
+    # Ordenar todo el vídeo por tiempo de inicio
+    pares = sorted(zip(metadatos, documentos), key=lambda x: x[0].get("inicio", 0))
+
+    total = len(pares)
+
+    # Si hay menos fragmentos que los que pedimos, los devolvemos todos
+    if total <= n_fragmentos:
+        seleccionados = pares
+    else:
+        # Elegimos índices repartidos uniformemente a lo largo de TODO el vídeo
+        # (ej: si hay 400 fragmentos y queremos 40, cogemos 1 de cada 10)
+        paso = total / n_fragmentos
+        indices = [int(i * paso) for i in range(n_fragmentos)]
+        seleccionados = [pares[i] for i in indices]
+
+    metadatos_sel  = [m for m, _ in seleccionados]
+    documentos_sel = [d for _, d in seleccionados]
+    return documentos_sel, metadatos_sel
+
+
 def _llamar_mistral(system: str, messages: list[dict]) -> str:
     """
     Llama a Mistral en la nube.
@@ -214,10 +255,16 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
 # FUNCIÓN 2: RESUMEN GLOBAL DEL VÍDEO
 # ─────────────────────────────────────────────────────────────
 
-def generar_resumen(video_id: str, n_fragmentos: int = 20) -> dict:
+def generar_resumen(video_id: str, n_fragmentos: int = 40) -> dict:
     """
     Genera un resumen de los temas principales debatidos en el vídeo.
     Se recomienda llamar esta función al cargar el vídeo en el frontend.
+
+    IMPORTANTE: usa _muestrear_video_completo() para coger fragmentos
+    repartidos por TODO el vídeo (no solo el principio), y le pide al LLM
+    que use las palabras literales del texto al nombrar los temas, para que
+    luego la búsqueda semántica (buscar()) encuentre fragmentos reales
+    cuando el usuario pregunte sobre esos temas.
 
     Devuelve un diccionario con:
       - video_id  → id del vídeo
@@ -225,13 +272,7 @@ def generar_resumen(video_id: str, n_fragmentos: int = 20) -> dict:
       - error     → mensaje de error si algo falló (None si todo fue bien)
     """
 
-    resultados = collection.get(
-        where={"video_id": {"$eq": video_id}},
-        include=["documents", "metadatas"]
-    )
-
-    documentos = resultados.get("documents", [])
-    metadatos  = resultados.get("metadatas", [])
+    documentos, metadatos = _muestrear_video_completo(video_id, n_fragmentos)
 
     if not documentos:
         return {
@@ -240,30 +281,32 @@ def generar_resumen(video_id: str, n_fragmentos: int = 20) -> dict:
             "error":    f"No se encontraron fragmentos para el video '{video_id}'."
         }
 
-    # Ordenar por tiempo de inicio y coger los primeros n_fragmentos
-    pares = sorted(zip(metadatos, documentos), key=lambda x: x[0].get("inicio", 0))
-    pares = pares[:n_fragmentos]
-
-    contexto = _construir_contexto(
-        [doc for _, doc in pares],
-        [meta for meta, _ in pares]
-    )
+    contexto = _construir_contexto(documentos, metadatos)
 
     system = (
         "Eres un asistente especializado en sesiones parlamentarias españolas. "
-        "Tu tarea es hacer un resumen claro y organizado. "
+        "Tu tarea es hacer un resumen claro, organizado y FIEL AL TEXTO ORIGINAL. "
         "DEBES estructurar tu respuesta EXACTAMENTE con los siguientes dos encabezados:\n"
         "### 1. Índice de Temas\n"
         "### 2. Resumen Global"
     )
 
     mensaje = (
-        f"A continuación tienes fragmentos de una sesión parlamentaria.\n\n"
+        f"A continuación tienes fragmentos de una sesión parlamentaria, "
+        f"repartidos a lo largo de TODO el vídeo (no solo el principio).\n\n"
         f"{contexto}\n\n"
         "Por favor, genera tu respuesta siguiendo esta estructura estricta:\n\n"
         "### 1. Índice de Temas\n"
         "- Escribe una lista de viñetas con los temas principales que se debatieron.\n"
-        "- Usa el formato: '**Tema**: Breve descripción'.\n\n"
+        "- Usa el formato: '**Tema**: Breve descripción'.\n"
+        "- MUY IMPORTANTE: nombra cada tema usando las MISMAS PALABRAS o expresiones "
+        "que aparecen literalmente en los fragmentos de arriba (por ejemplo, si en el "
+        "texto se habla de 'la subida del salario mínimo', el tema debe llamarse "
+        "'Subida del salario mínimo', NO uses sinónimos rebuscados ni lo generalices "
+        "como 'Política económica'). Esto es porque luego un usuario va a preguntar "
+        "usando ese mismo nombre de tema y necesitamos que las palabras coincidan "
+        "con lo que realmente se dijo.\n"
+        "- No inventes ni incluyas temas que no aparezcan en los fragmentos.\n\n"
         "### 2. Resumen Global\n"
         "Escribe un resumen en párrafos continuos que explique:\n"
         "- Las posturas más destacadas de los ponentes.\n"
@@ -301,7 +344,8 @@ def _buscar_wikipedia(termino: str) -> str:
 
 def _detectar_entidades_con_llm(texto: str) -> dict:
     """
-    Usa Mistral para detectar leyes, personas, lugares e instituciones en el texto parlamentario.
+    Usa Groq para detectar leyes, personas, lugares e instituciones en el texto parlamentario,
+    ya que es más rápido y tiene un límite de llamadas más alto que Mistral.
     Devuelve {"leyes": [...], "personas": [...], "lugares": [...], "instituciones": [...]}
     """
     system = (
@@ -454,11 +498,7 @@ def extraer_entidades(video_id: str, pregunta: str = "", top_k: int = 10) -> dic
             )
             documentos = resultados["documents"][0]
         else:
-            resultados = collection.get(
-                where={"video_id": {"$eq": video_id}},
-                include=["documents"]
-            )
-            documentos = resultados.get("documents", [])[:top_k]
+            documentos, _ = _muestrear_video_completo(video_id, top_k)
 
         if not documentos:
             return {
