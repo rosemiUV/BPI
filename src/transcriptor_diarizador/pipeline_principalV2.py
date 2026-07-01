@@ -64,90 +64,96 @@ def ejecutar_pipeline_completo(url_video: str, callback_progreso=None):
     if callback_progreso:
         callback_progreso({"video_id": video_id, "progreso": 10, "estado": "Transcribiendo y separando voces (Esto tardará un poco)..."})
 
-    # --- FASE 2+3: TRANSCRIPCIÓN + DIARIZACIÓN INTEGRADA ---
-    print("\n--- FASE 2+3: TRANSCRIPCIÓN Y DIARIZACIÓN (WhisperX + PyAnnote) ---")
-    segmentos = transcribir_y_diarizar(audio_path)
-
-    # Guardar segmentos crudos (útil para depuración)
-    dir_diar = dir_data_root / "resultados_diarizacion"
-    dir_diar.mkdir(parents=True, exist_ok=True)
-    ruta_segmentos_crudos = dir_diar / f"diarizacion_{video_id}.json"
-    with open(ruta_segmentos_crudos, "w", encoding="utf-8") as f:
-        json.dump(segmentos, f, indent=2, ensure_ascii=False)
-    print(f"Segmentos crudos guardados en: {ruta_segmentos_crudos}")
-
-    # 3. AVISO: Procesamiento de datos (90%)
-    if callback_progreso:
-        callback_progreso({"video_id": video_id, "progreso": 90, "estado": "Generando fragmentos inteligentes para el buscador RAG..."})
-
-    # --- FASE 4: CHUNKING + METADATOS ---
-    print("\n--- FASE 4: GENERANDO CHUNKS PARA RAG ---")
-    dir_final = dir_data_root / "resultados_finales"
-    ruta_json_final = dir_final / f"datos_rag_{video_id}.json"
-
-    chunks = fusionar_datos_para_rag(
-        segmentos=segmentos,
-        video_id=video_id,
-        url_video=url_video,
-        titulo_video=titulo_real,
-        fecha_publicacion=fecha_publicacion,
-        ruta_guardado=ruta_json_final,
-        max_palabras=170,
-    )
-    print(f"Chunks generados: {len(chunks)} — guardados en: {ruta_json_final}")
-
-    # 4b. AVISO: Identificación de speakers (92%)
-    if callback_progreso:
-        callback_progreso({"video_id": video_id, "progreso": 92, "estado": "Identificando a los oradores (nombre y partido)..."})
-
-    # --- FASE 4b: IDENTIFICACIÓN DE SPEAKERS ---
-    print("\n--- FASE 4b: IDENTIFICACIÓN DE SPEAKERS ---")
-    ruta_json_identificado = identificar_video(
-        ruta_json_entrada=ruta_json_final,
-        usar_llm=True,
-    )
-    print(f"Speakers identificados — JSON final: {ruta_json_identificado}")
-
-    # El JSON identificado es el que se sube a ChromaDB de aquí en adelante
-    ruta_json_final = ruta_json_identificado
-
-    # 4. AVISO: Base de datos (95%)
-    if callback_progreso:
-        callback_progreso({"video_id": video_id, "progreso": 95, "estado": "Guardando información procesada en ChromaDB..."})
-
-    # --- FASE 5: SUBIDA A CHROMADB ---
-    print("\n--- FASE 5: SUBIDA A CHROMA DB ---")
-    if ruta_json_final.exists():
-        subir_datos_a_chroma(ruta_json_final)
-    else:
-        print("Error: no se encontró el JSON final.")
-
-    # --- FASE 6: CÁLCULO DE METADATOS GLOBALES CON IA ---
-    print("\n--- FASE 6: CÁLCULO DE METADATOS GLOBALES CON IA ---")
-    if callback_progreso:
-        callback_progreso({"video_id": video_id, "progreso": 98, "estado": "Generando resumen global y entidades con IA..."})
-
     try:
-        from src.motor_busqueda.pipeline_rag import generar_resumen, extraer_entidades
-        from src.api.database import guardar_metadatos_video
-        
-        print("Generando resumen...")
-        res_resumen = generar_resumen(video_id)
-        print("Extrayendo entidades...")
-        res_entidades = extraer_entidades(video_id)
-        
-        guardar_metadatos_video(
-            video_id=video_id,
-            resumen=res_resumen.get("resumen", ""),
-            entidades=res_entidades.get("entidades", [])
-        )
-        print("Metadatos globales guardados en SQLite.")
-    except Exception as e:
-        print(f"Error calculando metadatos globales en Fase 6: {e}")
+        # --- FASE 2+3: TRANSCRIPCIÓN + DIARIZACIÓN INTEGRADA ---
+        print("\n--- FASE 2+3: TRANSCRIPCIÓN Y DIARIZACIÓN (WhisperX + PyAnnote) ---")
+        segmentos = transcribir_y_diarizar(audio_path)
 
-    # 5. AVISO: Completado (100%)
-    if callback_progreso:
-        callback_progreso({"video_id": video_id, "progreso": 100, "estado": "¡Procesamiento completado con éxito!"})
+        # Guardar segmentos crudos (útil para depuración)
+        dir_diar = dir_data_root / "resultados_diarizacion"
+        dir_diar.mkdir(parents=True, exist_ok=True)
+        ruta_segmentos_crudos = dir_diar / f"diarizacion_{video_id}.json"
+        with open(ruta_segmentos_crudos, "w", encoding="utf-8") as f:
+            json.dump(segmentos, f, indent=2, ensure_ascii=False)
+        print(f"Segmentos crudos guardados en: {ruta_segmentos_crudos}")
+
+        # 3. AVISO: Procesamiento de datos (90%)
+        if callback_progreso:
+            callback_progreso({"video_id": video_id, "progreso": 90, "estado": "Generando fragmentos inteligentes para el buscador RAG..."})
+
+        # --- FASE 4: CHUNKING + METADATOS ---
+        print("\n--- FASE 4: GENERANDO CHUNKS PARA RAG ---")
+        dir_final = dir_data_root / "resultados_finales"
+        ruta_json_final = dir_final / f"datos_rag_{video_id}.json"
+
+        chunks = fusionar_datos_para_rag(
+            segmentos=segmentos,
+            video_id=video_id,
+            url_video=url_video,
+            titulo_video=titulo_real,
+            fecha_publicacion=fecha_publicacion,
+            ruta_guardado=ruta_json_final,
+            max_palabras=170,
+        )
+        print(f"Chunks generados: {len(chunks)} — guardados en: {ruta_json_final}")
+
+        # 4b. AVISO: Identificación de speakers (92%)
+        if callback_progreso:
+            callback_progreso({"video_id": video_id, "progreso": 92, "estado": "Identificando a los oradores (nombre y partido)..."})
+
+        # --- FASE 4b: IDENTIFICACIÓN DE SPEAKERS ---
+        print("\n--- FASE 4b: IDENTIFICACIÓN DE SPEAKERS ---")
+        ruta_json_identificado = identificar_video(
+            ruta_json_entrada=ruta_json_final,
+            usar_llm=True,
+        )
+        print(f"Speakers identificados — JSON final: {ruta_json_identificado}")
+
+        # El JSON identificado es el que se sube a ChromaDB de aquí en adelante
+        ruta_json_final = ruta_json_identificado
+
+        # 4. AVISO: Base de datos (95%)
+        if callback_progreso:
+            callback_progreso({"video_id": video_id, "progreso": 95, "estado": "Guardando información procesada en ChromaDB..."})
+
+        # --- FASE 5: SUBIDA A CHROMADB ---
+        print("\n--- FASE 5: SUBIDA A CHROMA DB ---")
+        if ruta_json_final.exists():
+            subir_datos_a_chroma(ruta_json_final)
+        else:
+            print("Error: no se encontró el JSON final.")
+
+        # --- FASE 6: CÁLCULO DE METADATOS GLOBALES CON IA ---
+        print("\n--- FASE 6: CÁLCULO DE METADATOS GLOBALES CON IA ---")
+        if callback_progreso:
+            callback_progreso({"video_id": video_id, "progreso": 98, "estado": "Generando resumen global y entidades con IA..."})
+
+        try:
+            from src.motor_busqueda.pipeline_rag import generar_resumen, extraer_entidades
+            from src.api.database import guardar_metadatos_video
+            
+            print("Generando resumen...")
+            res_resumen = generar_resumen(video_id)
+            print("Extrayendo entidades...")
+            res_entidades = extraer_entidades(video_id)
+            
+            guardar_metadatos_video(
+                video_id=video_id,
+                resumen=res_resumen.get("resumen", ""),
+                entidades=res_entidades.get("entidades", [])
+            )
+            print("Metadatos globales guardados en SQLite.")
+        except Exception as e:
+            print(f"Error calculando metadatos globales en Fase 6: {e}")
+
+        # 5. AVISO: Completado (100%)
+        if callback_progreso:
+            callback_progreso({"video_id": video_id, "progreso": 100, "estado": "¡Procesamiento completado con éxito!"})
+
+    except Exception as e:
+        if callback_progreso:
+            callback_progreso({"video_id": video_id, "progreso": -1, "estado": f"Error durante el procesamiento: {e}"})
+        raise Exception(f"Falló el pipeline: {e}")
 
     print("\nPIPELINE COMPLETADO AL 100%.")
     return video_id, str(ruta_json_final), titulo_real
