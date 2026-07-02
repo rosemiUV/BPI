@@ -1,12 +1,344 @@
 import { useState, useEffect, useRef } from 'react'
 import { Search, PlayCircle, ArrowLeft, Loader2, Video, Clock, ChevronRight, Info, Sparkles, X, Users, BarChart2 } from 'lucide-react'
-import DashboardEstadisticas from './DashboardEstadisticas'
+import DashboardEstadisticas, { MAPA_COLORES } from './DashboardEstadisticas'
+
+// Error boundary para evitar pantallas blancas fatales
+import React from 'react';
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  static getDerivedStateFromError(error) { return { hasError: true, error }; }
+  componentDidCatch(error, info) { console.error("ErrorBoundary caught:", error, info); }
+  render() {
+    if (this.state.hasError) {
+      return <div className="p-10 m-10 bg-red-900/50 border border-red-500 rounded-xl text-white">
+        <h3 className="text-xl font-bold mb-2">Error fatal en React</h3>
+        <p className="font-mono text-sm">{this.state.error?.toString()}</p>
+      </div>;
+    }
+    return this.props.children;
+  }
+}
 
 // Configuración de URLs mediante variables de entorno (con fallback a localhost)
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const WS_URL = API_URL.replace(/^http/, 'ws');
 
+// Componente interno para mostrar textos largos con opción a expandir
+const TextoExpandible = ({ text, limit = 150, textClass = "", clampClass = "line-clamp-3" }) => {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = text && text.length > limit;
+
+  return (
+    <div className="flex flex-col w-full pointer-events-auto">
+      <p 
+        className={`${textClass} ${expanded ? '' : clampClass} transition-all duration-300`}
+        title={expanded ? undefined : text}
+      >
+        "{text}"
+      </p>
+      {isLong && (
+        <button 
+          onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }} 
+          className="text-[10px] font-bold uppercase tracking-wider text-blue-400 hover:text-blue-500 mt-1.5 self-start transition-colors"
+        >
+          {expanded ? "Ver menos" : "Leer más"}
+        </button>
+      )}
+    </div>
+  );
+};
+
+// Cargar la API de YouTube de forma global
+let ytApiPromise = null;
+const loadYTApi = () => {
+  if (!ytApiPromise) {
+    ytApiPromise = new Promise((resolve) => {
+      if (window.YT && window.YT.Player) {
+        resolve(window.YT);
+        return;
+      }
+      window.onYouTubeIframeAPIReady = () => {
+        resolve(window.YT);
+      };
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(tag);
+    });
+  }
+  return ytApiPromise;
+};
+
+const YouTubeLoopPlayer = ({ url, inicio, fin, isActive }) => {
+  const containerRef = useRef(null);
+  const playerRef = useRef(null);
+  const [videoId, setVideoId] = useState(null);
+
+  useEffect(() => {
+    let vid = null;
+    try {
+      const cleanUrl = url.replace(/[?&]t=\d+s?/, '');
+      const urlObj = new URL(cleanUrl);
+      if (urlObj.hostname.includes('youtube.com')) {
+        if (urlObj.pathname.startsWith('/watch')) vid = urlObj.searchParams.get('v');
+        else if (urlObj.pathname.startsWith('/live/')) vid = urlObj.pathname.split('/')[2];
+        else if (urlObj.pathname.startsWith('/embed/')) vid = urlObj.pathname.split('/')[2];
+      } else if (urlObj.hostname === 'youtu.be') {
+        vid = urlObj.pathname.slice(1);
+      }
+    } catch {}
+    if (vid) setVideoId(vid);
+  }, [url]);
+
+  useEffect(() => {
+    if (!videoId || !containerRef.current) return;
+    
+    let isMounted = true;
+    
+    loadYTApi().then((YT) => {
+      if (!isMounted) return;
+      
+      const startSeconds = Math.floor(inicio || 0);
+      const endSeconds = Math.ceil(fin || startSeconds + 60);
+
+      const innerDiv = document.createElement('div');
+      containerRef.current.innerHTML = '';
+      containerRef.current.appendChild(innerDiv);
+
+      playerRef.current = new YT.Player(innerDiv, {
+        videoId: videoId,
+        height: '100%',
+        width: '100%',
+        playerVars: {
+          start: startSeconds,
+          end: endSeconds,
+          enablejsapi: 1,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1
+        },
+        events: {
+          onStateChange: (event) => {
+            // YT.PlayerState.ENDED === 0
+            if (event.data === 0) {
+              playerRef.current.seekTo(startSeconds);
+              playerRef.current.playVideo();
+            }
+          }
+        }
+      });
+    });
+
+    return () => {
+      isMounted = false;
+      if (playerRef.current && typeof playerRef.current.destroy === 'function') {
+        playerRef.current.destroy();
+      }
+    };
+  }, [videoId, inicio, fin]);
+
+  useEffect(() => {
+    if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
+      if (!isActive) {
+        try { playerRef.current.pauseVideo(); } catch(e){}
+      } else {
+        try { 
+          const startSeconds = Math.floor(inicio || 0);
+          playerRef.current.seekTo(startSeconds);
+          playerRef.current.playVideo();
+        } catch(e){}
+      }
+    }
+  }, [isActive, inicio]);
+
+  return <div ref={containerRef} className="yt-iframe w-full aspect-video shadow-2xl" />;
+};
+
 // Las sesiones se cargarán ahora de forma dinámica desde el backend
+// Componente que resalta las entidades en un texto
+// Componente interno para resaltar entidades en texto plano
+const EntityText = ({ text, validEntities, setTooltipGlobal }) => {
+  if (!text) return null;
+  if (!validEntities || validEntities.length === 0) return <>{text}</>;
+
+  const escapedNames = validEntities.map(e => e.nombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const regex = new RegExp(`(${escapedNames.join('|')})`, 'gi');
+
+  const parts = text.split(regex);
+
+  return (
+    <>
+      {parts.map((part, i) => {
+        const entityMatch = validEntities.find(e => e.nombre.toLowerCase() === part.toLowerCase());
+
+        if (entityMatch) {
+          const tipo = entityMatch.tipo;
+          let bgColor = 'bg-gray-100 text-gray-800 border-gray-300';
+          let icon = '📌';
+
+          if (tipo === 'ley') { bgColor = 'bg-amber-100 text-amber-800 border-amber-300'; icon = '⚖️'; }
+          else if (tipo === 'persona') { bgColor = 'bg-emerald-100 text-emerald-800 border-emerald-300'; icon = '👤'; }
+          else if (tipo === 'lugar') { bgColor = 'bg-blue-100 text-blue-800 border-blue-300'; icon = '📍'; }
+          else if (tipo === 'institucion') { bgColor = 'bg-purple-100 text-purple-800 border-purple-300'; icon = '🏛️'; }
+
+          return (
+            <span
+              key={i}
+              onMouseEnter={(e) => {
+                const rect = e.target.getBoundingClientRect();
+                setTooltipGlobal({
+                  visible: true,
+                  x: rect.left + rect.width / 2,
+                  y: rect.top, // lo pondremos encima
+                  title: tipo,
+                  desc: entityMatch.explicacion,
+                  icon: icon
+                });
+              }}
+              onMouseLeave={() => setTooltipGlobal(prev => ({ ...prev, visible: false }))}
+              className={`inline-flex items-center px-1.5 py-0 mx-0.5 rounded-md font-medium border cursor-help transition-all hover:shadow-md hover:-translate-y-0.5 relative ${bgColor}`}
+            >
+              {part}
+            </span>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+};
+
+// Componente que renderiza texto con formato Markdown básico y resalta entidades
+const TextWithEntities = ({ text, entidadesList, setTooltipGlobal }) => {
+  if (!text) return null;
+
+  // Filtramos las entidades válidas una sola vez
+  const validEntities = (entidadesList || []).filter(e => e.nombre && e.nombre.length > 2);
+  validEntities.sort((a, b) => b.nombre.length - a.nombre.length);
+
+  // Parseador inline para negrita y cursiva
+  const parseInline = (line, lineKey) => {
+    const parts = line.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+    return (
+      <span key={lineKey}>
+        {parts.map((part, i) => {
+          if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+            const inner = part.slice(2, -2);
+            return <strong key={i} className="font-bold text-[#1d1d1f]"><EntityText text={inner} validEntities={validEntities} setTooltipGlobal={setTooltipGlobal} /></strong>;
+          } else if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+            const inner = part.slice(1, -1);
+            return <em key={i} className="italic text-[#1d1d1f]/80"><EntityText text={inner} validEntities={validEntities} setTooltipGlobal={setTooltipGlobal} /></em>;
+          } else {
+            return <EntityText key={i} text={part} validEntities={validEntities} setTooltipGlobal={setTooltipGlobal} />;
+          }
+        })}
+      </span>
+    );
+  };
+
+  // Pre-procesamos para arreglar viñetas "huerfanas" (ej: el LLM pone "•" y luego un salto de línea antes del texto)
+  const cleanText = text.replace(/^(\s*[-*•+])\s*\n/gm, '$1 ');
+  const lines = cleanText.split('\n');
+
+  return (
+    <div className="flex flex-col gap-2">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+
+        if (trimmed === '---') {
+          return <hr key={idx} className="my-4 border-t border-gray-300" />;
+        }
+
+        // Soportar desde 1 hasta 6 almohadillas para los títulos
+        const headingMatch = line.match(/^(#{1,6})\s+(.*)/);
+        if (headingMatch) {
+          const level = headingMatch[1].length;
+          const content = parseInline(headingMatch[2], idx);
+          if (level <= 2) return <h2 key={idx} className="text-xl font-bold text-gray-900 mt-5 mb-2">{content}</h2>;
+          if (level === 3) return <h3 key={idx} className="text-lg font-bold text-gray-900 mt-4 mb-1">{content}</h3>;
+          return <h4 key={idx} className="text-md font-bold text-gray-900 mt-3 mb-1">{content}</h4>;
+        }
+
+        // Soportar listas con -, *, • o +
+        const listMatch = line.match(/^(\s*)([-*•+])\s+(.*)/);
+        if (listMatch) {
+          const isNested = listMatch[1].length > 0;
+          return (
+            <div key={idx} className={`flex items-start ${isNested ? 'ml-6' : 'ml-2'} mt-1`}>
+              <span className="text-blue-500 mr-2 font-bold">•</span>
+              <span className="flex-1">{parseInline(listMatch[3], idx)}</span>
+            </div>
+          );
+        }
+
+        if (trimmed === '') {
+          return null;
+        }
+
+        // Párrafo normal
+        return <p key={idx} className="leading-relaxed">{parseInline(line, idx)}</p>;
+      })}
+    </div>
+  );
+};
+
+// Componente para renderizar visualmente el resumen parseando el Markdown del LLM
+const ResumenVisual = ({ texto, entidadesList, setTooltipGlobal }) => {
+  if (!texto) return null;
+
+  // Separamos el índice del resumen usando el encabezado que le exigimos al LLM
+  const partes = texto.split(/### 2\. Resumen Global/i);
+
+  let indiceStr = partes[0].replace(/### 1\. Índice de Temas/i, '').trim();
+  let resumenStr = partes.length > 1 ? partes[1].trim() : '';
+
+  // Si el LLM no usó exactamente esos encabezados, asumimos todo como resumen
+  if (partes.length === 1) {
+    resumenStr = texto;
+    indiceStr = '';
+  }
+
+  // Parseamos las viñetas del índice (líneas que empiezan por - o *)
+  const temas = indiceStr.split('\n')
+    .filter(line => line.trim().startsWith('-') || line.trim().startsWith('*'))
+    .map(line => {
+      let text = line.replace(/^[-*]\s*/, '').trim();
+      // Si tiene formato "**Tema**: Descripción", lo separamos
+      const match = text.match(/^\*\*(.*?)\*\*(.*)/);
+      if (match) {
+        return { titulo: match[1], desc: match[2].replace(/^:/, '').trim() };
+      }
+      return { titulo: text, desc: '' };
+    });
+
+  return (
+    <div className="flex flex-col lg:flex-row gap-8 mt-2">
+      {/* Índice de Temas */}
+      {temas.length > 0 && (
+        <div className="w-full lg:w-1/3 flex flex-col gap-3">
+          <h4 className="text-xs font-bold tracking-widest text-purple-600 uppercase mb-2">Índice de Temas</h4>
+          <div className="flex flex-col gap-3">
+            {temas.map((tema, idx) => (
+              <div key={idx} className="bg-purple-50/50 p-4 rounded-2xl border border-purple-100/50 transition-all hover:bg-purple-50 hover:shadow-sm">
+                <h5 className="font-semibold text-[#1d1d1f] leading-tight mb-1">{tema.titulo}</h5>
+                {tema.desc && <p className="text-sm text-[#86868b] leading-relaxed">{tema.desc}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Resumen Global */}
+      <div className="w-full lg:flex-1 flex flex-col gap-3">
+        <h4 className="text-xs font-bold tracking-widest text-blue-600 uppercase mb-2">Análisis Global</h4>
+        <div className="prose prose-lg text-[#1d1d1f] leading-relaxed opacity-90">
+          <TextWithEntities text={resumenStr} entidadesList={entidadesList} setTooltipGlobal={setTooltipGlobal} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 function App() {
 
   // ========================================================
@@ -220,122 +552,6 @@ function App() {
   // FUNCIONES Y COMPONENTES AUXILIARES
   // ========================================================
 
-  // Componente que resalta las entidades en un texto
-  const TextWithEntities = ({ text, entidadesList }) => {
-    if (!text) return null;
-    if (!entidadesList || entidadesList.length === 0) return <>{text}</>;
-
-    // Filtrar válidas y ordenar de mayor a menor longitud para regex seguro
-    const validEntities = entidadesList.filter(e => e.nombre && e.nombre.length > 2);
-    if (validEntities.length === 0) return <>{text}</>;
-
-    validEntities.sort((a, b) => b.nombre.length - a.nombre.length);
-
-    // Regex global case-insensitive
-    const escapedNames = validEntities.map(e => e.nombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    const regex = new RegExp(`(${escapedNames.join('|')})`, 'gi');
-
-    const parts = text.split(regex);
-
-    return (
-      <>
-        {parts.map((part, i) => {
-          const entityMatch = validEntities.find(e => e.nombre.toLowerCase() === part.toLowerCase());
-
-          if (entityMatch) {
-            const tipo = entityMatch.tipo;
-            let bgColor = 'bg-gray-100 text-gray-800 border-gray-300';
-            let icon = '📌';
-
-            if (tipo === 'ley') { bgColor = 'bg-amber-100 text-amber-800 border-amber-300'; icon = '⚖️'; }
-            else if (tipo === 'persona') { bgColor = 'bg-emerald-100 text-emerald-800 border-emerald-300'; icon = '👤'; }
-            else if (tipo === 'lugar') { bgColor = 'bg-blue-100 text-blue-800 border-blue-300'; icon = '📍'; }
-            else if (tipo === 'institucion') { bgColor = 'bg-purple-100 text-purple-800 border-purple-300'; icon = '🏛️'; }
-
-            return (
-              <span
-                key={i}
-                onMouseEnter={(e) => {
-                  const rect = e.target.getBoundingClientRect();
-                  setTooltipGlobal({
-                    visible: true,
-                    x: rect.left + rect.width / 2,
-                    y: rect.top, // lo pondremos encima
-                    title: tipo,
-                    desc: entityMatch.explicacion,
-                    icon: icon
-                  });
-                }}
-                onMouseLeave={() => setTooltipGlobal({ ...tooltipGlobal, visible: false })}
-                className={`inline-flex items-center px-1.5 py-0 mx-0.5 rounded-md font-medium border cursor-help transition-all hover:shadow-md hover:-translate-y-0.5 relative ${bgColor}`}
-              >
-                {part}
-              </span>
-            );
-          }
-          return <span key={i}>{part}</span>;
-        })}
-      </>
-    );
-  };
-
-  // Componente para renderizar visualmente el resumen parseando el Markdown del LLM
-  const ResumenVisual = ({ texto }) => {
-    if (!texto) return null;
-
-    // Separamos el índice del resumen usando el encabezado que le exigimos al LLM
-    const partes = texto.split(/### 2\. Resumen Global/i);
-
-    let indiceStr = partes[0].replace(/### 1\. Índice de Temas/i, '').trim();
-    let resumenStr = partes.length > 1 ? partes[1].trim() : '';
-
-    // Si el LLM no usó exactamente esos encabezados, asumimos todo como resumen
-    if (partes.length === 1) {
-      resumenStr = texto;
-      indiceStr = '';
-    }
-
-    // Parseamos las viñetas del índice (líneas que empiezan por - o *)
-    const temas = indiceStr.split('\n')
-      .filter(line => line.trim().startsWith('-') || line.trim().startsWith('*'))
-      .map(line => {
-        let text = line.replace(/^[-*]\s*/, '').trim();
-        // Si tiene formato "**Tema**: Descripción", lo separamos
-        const match = text.match(/^\*\*(.*?)\*\*(.*)/);
-        if (match) {
-          return { titulo: match[1], desc: match[2].replace(/^:/, '').trim() };
-        }
-        return { titulo: text, desc: '' };
-      });
-
-    return (
-      <div className="flex flex-col lg:flex-row gap-8 mt-2">
-        {/* Índice de Temas */}
-        {temas.length > 0 && (
-          <div className="w-full lg:w-1/3 flex flex-col gap-3">
-            <h4 className="text-xs font-bold tracking-widest text-purple-600 uppercase mb-2">Índice de Temas</h4>
-            <div className="flex flex-col gap-3">
-              {temas.map((tema, idx) => (
-                <div key={idx} className="bg-purple-50/50 p-4 rounded-2xl border border-purple-100/50 transition-all hover:bg-purple-50 hover:shadow-sm">
-                  <h5 className="font-semibold text-[#1d1d1f] leading-tight mb-1">{tema.titulo}</h5>
-                  {tema.desc && <p className="text-sm text-[#86868b] leading-relaxed">{tema.desc}</p>}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Resumen Global */}
-        <div className="w-full lg:flex-1 flex flex-col gap-3">
-          <h4 className="text-xs font-bold tracking-widest text-blue-600 uppercase mb-2">Análisis Global</h4>
-          <div className="prose prose-lg text-[#1d1d1f] leading-relaxed opacity-90 whitespace-pre-wrap">
-            <TextWithEntities text={resumenStr} entidadesList={entidades} />
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const procesarNuevoVideo = async () => {
 
     if (!urlVideo.trim()) return
@@ -529,40 +745,6 @@ function App() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [historialChat, cargandoBusqueda]);
-
-  // 2.2. Función que convierte un link normal de YT en un link incrustable para el iframe
-  const obtenerEnlaceEmbed = (url) => {
-    try {
-      let videoId = 'TEST';
-      let time = 0;
-
-      // 1. Extraer el tiempo directamente con RegEx (soporta ?t=10s o &t=10s)
-      const timeMatch = url.match(/[?&]t=(\d+)s?/);
-      if (timeMatch) {
-        time = parseInt(timeMatch[1], 10);
-      }
-
-      // 2. Limpiar el tiempo de la URL para que no interfiera al buscar el ID
-      const cleanUrl = url.replace(/[?&]t=\d+s?/, '');
-      const urlObj = new URL(cleanUrl);
-
-      if (urlObj.hostname.includes('youtube.com')) {
-        if (urlObj.pathname.startsWith('/watch')) {
-          videoId = urlObj.searchParams.get('v');
-        } else if (urlObj.pathname.startsWith('/live/')) {
-          videoId = urlObj.pathname.split('/')[2];
-        } else if (urlObj.pathname.startsWith('/embed/')) {
-          videoId = urlObj.pathname.split('/')[2];
-        }
-      } else if (urlObj.hostname === 'youtu.be') {
-        videoId = urlObj.pathname.slice(1);
-      }
-
-      return `https://www.youtube.com/embed/${videoId}?start=${time}&enablejsapi=1`;
-    } catch {
-      return url;
-    }
-  }
 
   // 2.3. Función para mover el feed estilo TIKTOK
   const irAVideo = (indice) => {
@@ -821,7 +1003,7 @@ function App() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto pr-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full relative z-10">
-                  <ResumenVisual texto={resumenGlobal} />
+                  <ResumenVisual texto={resumenGlobal} entidadesList={entidades} setTooltipGlobal={setTooltipGlobal} />
                 </div>
               </div>
             </div>
@@ -854,7 +1036,7 @@ function App() {
                           }`}
                       >
                         <p className="leading-relaxed whitespace-pre-wrap text-[15px]">
-                          <TextWithEntities text={msg.content} entidadesList={entidades} />
+                          <TextWithEntities text={msg.content} entidadesList={entidades} setTooltipGlobal={setTooltipGlobal} />
                         </p>
 
                         {msg.role === 'bot' && msg.fuentes_top_k?.length > 0 && (
@@ -919,11 +1101,25 @@ function App() {
                             : 'bg-transparent scale-[0.98] hover:bg-gray-50 opacity-60 hover:opacity-100'
                             }`}
                         >
-                          <span className="flex items-center gap-2 font-semibold text-sm mb-2 text-[#1d1d1f]">
-                            <PlayCircle size={16} className={indiceActivo === index ? "text-blue-600" : "text-gray-400"} />
-                            {fuente.ponente}
+                          <span className="flex items-center flex-wrap gap-2 font-semibold text-sm mb-2 text-[#1d1d1f]">
+                            <div className="flex items-center gap-2">
+                              <PlayCircle size={16} className={indiceActivo === index ? "text-blue-600" : "text-gray-400"} />
+                              {fuente.nombre || fuente.ponente.split(' (')[0]}
+                            </div>
+                            {fuente.partido && (
+                              <span 
+                                className="px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wider uppercase border"
+                                style={{ 
+                                  backgroundColor: `${MAPA_COLORES[fuente.partido] || '#8E8E93'}1A`, 
+                                  color: MAPA_COLORES[fuente.partido] || '#8E8E93',
+                                  borderColor: `${MAPA_COLORES[fuente.partido] || '#8E8E93'}33`
+                                }}
+                              >
+                                {fuente.partido}
+                              </span>
+                            )}
                           </span>
-                          <p className="text-sm text-[#86868b] line-clamp-3 leading-relaxed">
+                          <p className="text-sm text-[#86868b] line-clamp-3 leading-relaxed" title={fuente.texto}>
                             "{fuente.texto}"
                           </p>
 
@@ -955,17 +1151,30 @@ function App() {
                           data-index={index}
                           className="video-container w-full h-full snap-start snap-always relative flex flex-col items-center justify-center bg-[#1d1d1f]"
                         >
-                          <iframe
-                            className="yt-iframe w-full aspect-video shadow-2xl"
-                            src={obtenerEnlaceEmbed(fuente.enlace_video)}
-                            title={`Video ${index}`}
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowFullScreen
-                          ></iframe>
+                          <YouTubeLoopPlayer 
+                            url={fuente.enlace_video} 
+                            inicio={fuente.inicio_segundos} 
+                            fin={fuente.fin_segundos}
+                            isActive={indiceActivo === index}
+                          />
                           <div className="absolute bottom-8 left-6 right-6 bg-black/40 backdrop-blur-md p-5 rounded-3xl border border-white/10 text-white pointer-events-none">
-                            <p className="font-semibold text-lg tracking-tight mb-1">{fuente.ponente}</p>
-                            <p className="text-sm opacity-80 line-clamp-2 leading-relaxed">"{fuente.texto}"</p>
+                            <div className="flex items-center flex-wrap gap-3 mb-1">
+                              <p className="font-semibold text-lg tracking-tight">{fuente.nombre || fuente.ponente.split(' (')[0]}</p>
+                              {fuente.partido && (
+                                <span 
+                                  className="px-2.5 py-0.5 rounded-md text-xs font-bold tracking-wider uppercase text-white backdrop-blur-md border border-white/30 shadow-sm"
+                                  style={{ backgroundColor: `${MAPA_COLORES[fuente.partido] || '#8E8E93'}80` }}
+                                >
+                                  {fuente.partido}
+                                </span>
+                              )}
+                            </div>
+                            <TextoExpandible 
+                              text={fuente.texto} 
+                              limit={100} 
+                              textClass="text-sm opacity-80 leading-relaxed" 
+                              clampClass="line-clamp-2" 
+                            />
                           </div>
                         </div>
                       ))}
@@ -1023,7 +1232,7 @@ function App() {
                           {item.inicio} - {item.fin} {isTarget && '(Coincidencia)'}
                         </div>
                         <p className={`text-sm md:text-base leading-relaxed ${isTarget ? 'text-blue-900 font-medium' : 'text-gray-700'}`}>
-                          <TextWithEntities text={item.texto} entidadesList={entidades} />
+                          <TextWithEntities text={item.texto} entidadesList={entidades} setTooltipGlobal={setTooltipGlobal} />
                         </p>
                       </div>
                     );
@@ -1169,7 +1378,9 @@ function App() {
                   <p>Cargando estadísticas...</p>
                 </div>
               ) : (
-                <DashboardEstadisticas data={estadisticas} />
+                <ErrorBoundary>
+                  <DashboardEstadisticas data={estadisticas} />
+                </ErrorBoundary>
               )}
             </div>
           </div>

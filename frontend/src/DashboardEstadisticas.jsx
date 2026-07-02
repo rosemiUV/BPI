@@ -2,15 +2,17 @@ import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as BarTooltip, Legend } from 'recharts';
 
-const MAPA_COLORES = {
-  "Sumar": "#E51C55",       
-  "PSOE": "#ef4444", // Red            
-  "Vox": "#22c55e",  // Green           
-  "PP": "#1E90FF",          
-  "Mesa": "#8b4513", // SaddleBrown   
-  "ERC": "#FFD700",         
-  "EH Bildu": "#40e0d0", // Turquoise
-  "PNV": "#228B22" // ForestGreen
+export const MAPA_COLORES = {
+  "Sumar": "#FF2D55",       // Apple Pink
+  "PSOE": "#FF3B30",        // Apple Red
+  "Vox": "#34C759",         // Apple Green
+  "PP": "#007AFF",          // Apple Blue
+  "Mesa": "#A2845E",        // Classic Gold/Brown
+  "ERC": "#FFCC00",         // Apple Yellow
+  "Junts": "#AF52DE",       // Apple Purple
+  "EH Bildu": "#5AC8FA",    // Apple Cyan
+  "PNV": "#00C7BE",         // Apple Teal
+  "SIN PARTIDO": "#8E8E93"  // Apple Gray
 };
 
 export default function DashboardEstadisticas({ data }) {
@@ -28,13 +30,20 @@ export default function DashboardEstadisticas({ data }) {
     if (filtroPartido !== 'Todos') {
       filtradas = barras.filter(b => b.partido === filtroPartido);
     }
-    return filtradas.map(b => ({
+    const mapeadas = filtradas.map(b => ({
       nombre: b.nombre,
       partido: b.partido,
       porcentaje_global: Number((b.porcentaje_global || 0).toFixed(1)),
       porcentaje_relativo: Number((b.porcentaje_relativo || 0).toFixed(1)),
       color: MAPA_COLORES[b.partido] || '#808080'
     }));
+    
+    // Ordenar de mayor a menor intervención
+    return mapeadas.sort((a, b) => {
+      const valA = filtroPartido === 'Todos' ? a.porcentaje_global : a.porcentaje_relativo;
+      const valB = filtroPartido === 'Todos' ? b.porcentaje_global : b.porcentaje_relativo;
+      return valB - valA;
+    });
   }, [barras, filtroPartido]);
 
   if (!data || data.error) {
@@ -57,11 +66,13 @@ export default function DashboardEstadisticas({ data }) {
   }
 
   // Preparar datos para el PieChart (puede ir aquí o antes, no es un hook)
-  const datosTarta = tarta.map(item => ({
-    name: item.partido,
-    value: item.duracion,
-    color: MAPA_COLORES[item.partido] || '#808080'
-  }));
+  const datosTarta = [...tarta]
+    .sort((a, b) => b.duracion - a.duracion) // Ordenar de mayor a menor tiempo
+    .map(item => ({
+      name: item.partido,
+      value: item.duracion,
+      color: MAPA_COLORES[item.partido] || '#808080'
+    }));
 
   // Tooltip personalizado para la tarta
   const CustomPieTooltip = ({ active, payload }) => {
@@ -75,6 +86,16 @@ export default function DashboardEstadisticas({ data }) {
       );
     }
     return null;
+  };
+
+  const formatName = (name) => {
+    if (!name) return '';
+    if (name === 'DESCONOCIDO') return 'Desconocido';
+    const parts = name.split(' ');
+    if (parts.length > 1) {
+      return `${parts[0].charAt(0)}. ${parts[parts.length - 1]}`;
+    }
+    return name;
   };
 
   // Tooltip personalizado para las barras
@@ -92,40 +113,48 @@ export default function DashboardEstadisticas({ data }) {
   };
 
   return (
-    <div className="w-full h-full flex flex-col p-2 space-y-6 overflow-y-auto custom-scrollbar">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-white/90">Análisis de Tiempos de Habla</h2>
+    <div className="w-full h-full flex flex-col p-4 md:p-6 space-y-6 overflow-y-auto custom-scrollbar">
+      <div className="flex items-center justify-between px-1">
+        <h2 className="text-2xl font-semibold text-white/90 tracking-tight">Análisis de Tiempos de Habla</h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[400px]">
         {/* TARTA: Resumen por partidos */}
-        <div className="bg-white/5 rounded-2xl p-4 border border-white/10 flex flex-col items-center justify-center">
-          <h3 className="text-sm font-medium text-white/70 mb-4 w-full text-center">Distribución Total por Partido</h3>
-          <div className="w-full h-64 relative">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={datosTarta}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {datosTarta.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <RechartsTooltip content={<CustomPieTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
+        <div className="bg-[#1C1C1E]/50 backdrop-blur-xl rounded-3xl p-6 border border-white/5 flex flex-col items-center shadow-2xl relative overflow-hidden">
+          {/* Subtle top glare effect */}
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+          
+          <h3 className="text-sm font-semibold text-white/60 mb-4 w-full text-left uppercase tracking-wider">Distribución por Partido</h3>
+          
+          <div className="flex-1 flex flex-col items-center justify-center w-full">
+            <div className="w-full h-48 flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={datosTarta}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={85}
+                    paddingAngle={6}
+                    cornerRadius={12}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {datosTarta.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} opacity={0.9} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip content={<CustomPieTooltip />} cursor={{ fill: 'transparent' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            
             {/* Leyenda manual bajo la tarta */}
-            <div className="mt-2 w-full flex flex-wrap justify-center gap-2">
+            <div className="w-full flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4">
               {datosTarta.map((entry, index) => (
-                 <div key={index} className="flex items-center text-xs text-white/60">
-                   <span className="w-2 h-2 rounded-full mr-1" style={{backgroundColor: entry.color}}></span>
+                 <div key={index} className="flex items-center text-xs font-medium text-white/70">
+                   <span className="w-2.5 h-2.5 rounded-full mr-1.5 shadow-sm" style={{backgroundColor: entry.color}}></span>
                    {entry.name}
                  </div>
               ))}
@@ -134,21 +163,24 @@ export default function DashboardEstadisticas({ data }) {
         </div>
 
         {/* BARRAS: Detalle por ponente */}
-        <div className="lg:col-span-2 bg-white/5 rounded-2xl p-4 border border-white/10 flex flex-col">
+        <div className="lg:col-span-2 bg-[#1C1C1E]/50 backdrop-blur-xl rounded-3xl p-6 border border-white/5 flex flex-col shadow-2xl relative overflow-hidden">
+          {/* Subtle top glare effect */}
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+          
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-            <h3 className="text-sm font-medium text-white/70">
-              {filtroPartido === 'Todos' ? 'Intervención Global (%)' : `Intervención Interna en ${filtroPartido} (%)`}
+            <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider">
+              {filtroPartido === 'Todos' ? 'Intervención Global' : `Intervención en ${filtroPartido}`}
             </h3>
             
-            <div className="flex gap-2 mt-2 sm:mt-0 flex-wrap">
+            <div className="flex gap-2 mt-3 sm:mt-0 flex-wrap">
               {partidosDisponibles.map(partido => (
                 <button
                   key={partido}
                   onClick={() => setFiltroPartido(partido)}
-                  className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                  className={`px-3 py-1 text-xs rounded-full transition-all duration-300 ${
                     filtroPartido === partido
-                      ? 'bg-[#0A84FF] text-white font-medium shadow-md shadow-[#0A84FF]/20'
-                      : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/10'
+                      ? 'bg-white/10 text-white font-semibold backdrop-blur-md shadow-sm border border-white/10'
+                      : 'bg-transparent text-white/40 hover:bg-white/5 hover:text-white/80 border border-transparent'
                   }`}
                 >
                   {partido}
@@ -161,31 +193,34 @@ export default function DashboardEstadisticas({ data }) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={barrasFiltradas}
-                margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
+                margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                <CartesianGrid stroke="#ffffff08" vertical={false} horizontal={true} />
                 <XAxis 
                   dataKey="nombre" 
-                  stroke="#ffffff50" 
-                  tick={{fill: '#ffffff50', fontSize: 10}}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                  interval={0}
+                  stroke="transparent" 
+                  tick={{fill: '#ffffff60', fontSize: 11, fontWeight: 500}}
+                  tickFormatter={formatName}
+                  axisLine={false}
+                  tickLine={false}
+                  dy={10}
                 />
                 <YAxis 
-                  stroke="#ffffff50" 
-                  tick={{fill: '#ffffff50', fontSize: 10}} 
+                  stroke="transparent" 
+                  tick={{fill: '#ffffff30', fontSize: 11}} 
+                  axisLine={false}
+                  tickLine={false}
                   domain={[0, 100]}
                 />
-                <BarTooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} content={<CustomBarTooltip />} />
+                <BarTooltip cursor={{fill: 'rgba(255,255,255,0.03)'}} content={<CustomBarTooltip />} />
                 <Bar 
                   dataKey={filtroPartido === 'Todos' ? "porcentaje_global" : "porcentaje_relativo"} 
                   name={filtroPartido === 'Todos' ? "% Global" : "% Relativo"} 
-                  radius={[4, 4, 0, 0]}
+                  radius={[6, 6, 0, 0]}
+                  barSize={filtroPartido !== 'Todos' && barrasFiltradas.length < 5 ? 40 : undefined}
                 >
                   {barrasFiltradas.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={entry.color} opacity={0.9} />
                   ))}
                 </Bar>
               </BarChart>

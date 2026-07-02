@@ -11,27 +11,32 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ─────────────────────────────────────────────────────────────
-# CONECTAR A CHROMADB REMOTA
+# CONECTAR A CHROMADB
 # ─────────────────────────────────────────────────────────────
 
-CHROMA_HOST      = "chromadb-production-8466.up.railway.app"
-CHROMA_PORT      = 443
 NOMBRE_COLECCION = "plenario"
+MODO_LOCAL = True
 
 ef = embedding_functions.DefaultEmbeddingFunction()
 
-client = chromadb.HttpClient(
-    host=CHROMA_HOST,
-    port=CHROMA_PORT,
-    ssl=True
-)
+if MODO_LOCAL:
+    print("Conectando a ChromaDB local para RAG...")
+    client = chromadb.PersistentClient(path="./chroma_db_local")
+else:
+    CHROMA_HOST = "chromadb-production-8466.up.railway.app"
+    CHROMA_PORT = 443
+    print(f"Conectado a ChromaDB en {CHROMA_HOST}:{CHROMA_PORT}")
+    client = chromadb.HttpClient(
+        host=CHROMA_HOST,
+        port=CHROMA_PORT,
+        ssl=True
+    )
 
 collection = client.get_collection(
     name=NOMBRE_COLECCION,
     embedding_function=ef
 )
 
-print(f"Conectado a ChromaDB en {CHROMA_HOST}:{CHROMA_PORT}")
 print(f"Coleccion: '{NOMBRE_COLECCION}' — {collection.count()} fragmentos")
 
 
@@ -324,13 +329,23 @@ def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
     # 8. Construir fuentes
     fuentes_top_k = []
     for doc, meta in zip(documentos, metadatos):
-        fuentes_top_k.append({
-            "ponente":      _nombre_mostrar(meta),
-            "texto":        doc,
-            "enlace_video": meta.get("url_exacta_tiempo", ""),
-            "inicio":       _segundos_a_mmss(meta["inicio"]),
-            "fin":          _segundos_a_mmss(meta["fin"])
-        })
+        fuente = {**meta}  # Incluimos todos los metadatos (nombre, partido, confianza_id, etc.)
+        
+        # Añadimos y formateamos los campos específicos que espera el frontend
+        fuente["ponente"] = _nombre_mostrar(meta)
+        fuente["texto"] = doc
+        fuente["enlace_video"] = meta.get("url_exacta_tiempo", "")
+        # Guardamos el formato en minutos:segundos, manteniendo los originales como floats en la copia de meta
+        fuente["inicio_str"] = _segundos_a_mmss(meta["inicio"])
+        fuente["fin_str"] = _segundos_a_mmss(meta["fin"])
+        
+        # Para compatibilidad con el frontend actual que lee "inicio" y "fin" formateados:
+        fuente["inicio_segundos"] = meta["inicio"]
+        fuente["fin_segundos"] = meta["fin"]
+        fuente["inicio"] = _segundos_a_mmss(meta["inicio"])
+        fuente["fin"] = _segundos_a_mmss(meta["fin"])
+        
+        fuentes_top_k.append(fuente)
 
     return {
         "pregunta":      pregunta,

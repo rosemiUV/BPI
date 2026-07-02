@@ -14,6 +14,15 @@ class Fuente(BaseModel):
     ponente: str
     texto: str
     enlace_video: str
+    nombre: Optional[str] = None
+    partido: Optional[str] = None
+    inicio: Optional[str] = None
+    fin: Optional[str] = None
+    inicio_segundos: Optional[float] = None
+    fin_segundos: Optional[float] = None
+    
+    class Config:
+        extra = "allow"
 
 class SearchResponse(BaseModel):
     pregunta: str
