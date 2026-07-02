@@ -184,18 +184,55 @@ def _llamar_groq(system: str, messages: list[dict]) -> str:
     return respuesta.choices[0].message.content
 
 # ─────────────────────────────────────────────────────────────
+# DETECTOR DE PREGUNTAS GLOBALES (sobre TODO el vídeo)
+# ─────────────────────────────────────────────────────────────
+
+_PALABRAS_CLAVE_GLOBALES = [
+    "resum", "resúmeme", "sinopsis", "sintetiza",
+    "de qué va", "de qué trata", "de qué habla", "sobre qué habla", "sobre qué trata",
+    "qué se ha debatido", "qué se debatió", "qué se dijo en el video", "qué se dijo en el vídeo",
+    "qué se ha dicho en el video", "qué se ha dicho en el vídeo",
+    "temas principales", "principales temas", "de qué se ha hablado", "de qué se habló",
+    "todo el video", "todo el vídeo", "en general", "en resumen",
+    "qué ha pasado", "qué pasó en", "cuéntame el video", "cuéntame el vídeo",
+    "explícame el video", "explícame el vídeo", "puntos clave", "puntos principales"
+]
+
+
+def _es_pregunta_global(pregunta: str) -> bool:
+    """
+    Detecta si la pregunta es sobre TODO el vídeo en general (ej. "resúmeme el vídeo",
+    "¿de qué trata?", "temas principales") en vez de sobre un tema concreto.
+
+    Esto es importante porque la búsqueda semántica normal (collection.query) compara
+    tu pregunta con fragmentos concretos del vídeo. Una pregunta como "resúmeme el vídeo"
+    no se parece semánticamente a ningún fragmento real (nadie dice literalmente "esto es
+    un resumen"), así que devolvería fragmentos poco relevantes y el LLM, siendo honesto,
+    diría que no tiene suficiente información. Para estas preguntas usamos en su lugar una
+    muestra representativa de todo el vídeo (ver _muestrear_video_completo).
+    """
+    texto = pregunta.lower()
+    return any(palabra in texto for palabra in _PALABRAS_CLAVE_GLOBALES)
+
+
+# ─────────────────────────────────────────────────────────────
 # FUNCIÓN 1: BÚSQUEDA CON MEMORIA
 # ─────────────────────────────────────────────────────────────
 
-def buscar(pregunta: str, video_id: str, top_k: int = 10) -> dict:
+def buscar(pregunta: str, video_id: str, top_k: int = 5) -> dict:
     """
     Busca fragmentos relevantes y responde usando Mistral en la nube.
     Recuerda las preguntas anteriores del mismo vídeo (memoria de conversación).
 
+    Detecta automáticamente si la pregunta es GLOBAL (sobre todo el vídeo, ej.
+    "resúmeme", "de qué trata") o ESPECÍFICA (sobre un tema concreto). Para las
+    globales usa una muestra repartida por todo el vídeo en vez de búsqueda semántica,
+    porque una pregunta como "resúmeme" no encuentra buenos matches por similitud.
+
     Parámetros:
       - pregunta  → lo que escribe el usuario en Streamlit
       - video_id  → viene de los metadatos del JSON de entrada
-      - top_k     → número de fragmentos a recuperar (entre 5 y 10)
+      - top_k     → número de fragmentos a recuperar en preguntas específicas (entre 5 y 10)
 
     Devuelve un diccionario con:
       - pregunta       → lo que preguntó el usuario
@@ -204,16 +241,23 @@ def buscar(pregunta: str, video_id: str, top_k: int = 10) -> dict:
       - fuentes_top_k  → lista de fragmentos usados (ponente, texto, enlace, tiempos)
     """
 
-    # 1. Buscar fragmentos en ChromaDB
-    resultados = collection.query(
-        query_texts=[pregunta],
-        n_results=top_k,
-        where={"video_id": {"$eq": video_id}},
-        include=["documents", "metadatas"]
-    )
+    # 1. Elegir estrategia de recuperación según el tipo de pregunta
+    es_global = _es_pregunta_global(pregunta)
 
-    documentos = resultados["documents"][0]
-    metadatos  = resultados["metadatas"][0]
+    if es_global:
+        # Pregunta sobre TODO el vídeo (ej. "resúmeme", "de qué trata"):
+        # usamos una muestra repartida por todo el vídeo, no búsqueda semántica.
+        documentos, metadatos = _muestrear_video_completo(video_id, n_fragmentos=40)
+    else:
+        # Pregunta específica: búsqueda semántica normal en ChromaDB
+        resultados = collection.query(
+            query_texts=[pregunta],
+            n_results=top_k,
+            where={"video_id": {"$eq": video_id}},
+            include=["documents", "metadatas"]
+        )
+        documentos = resultados["documents"][0]
+        metadatos  = resultados["metadatas"][0]
 
     if not documentos:
         return {
@@ -230,10 +274,21 @@ def buscar(pregunta: str, video_id: str, top_k: int = 10) -> dict:
     historial_previo = obtener_historial(video_id)
 
     # 4. Construir el mensaje del usuario (pregunta + contexto nuevo)
-    mensaje_usuario = (
-        f"Pregunta del usuario: {pregunta}\n\n"
-        f"Fragmentos relevantes del vídeo:\n{contexto}"
-    )
+    if es_global:
+        mensaje_usuario = (
+            f"Pregunta del usuario: {pregunta}\n\n"
+            f"A continuación tienes una MUESTRA REPRESENTATIVA de fragmentos repartidos "
+            f"por TODO el vídeo (principio, medio y final). No son todos los fragmentos que "
+            f"existen, pero sí una muestra fiel de todo el contenido. Responde con una visión "
+            f"general basada en esta muestra; no te niegues a responder solo porque no sean "
+            f"literalmente todos los fragmentos del vídeo.\n\n"
+            f"Fragmentos:\n{contexto}"
+        )
+    else:
+        mensaje_usuario = (
+            f"Pregunta del usuario: {pregunta}\n\n"
+            f"Fragmentos relevantes del vídeo:\n{contexto}"
+        )
 
     # 5. Armar la lista de mensajes (historial + pregunta nueva)
     mensajes = historial_previo + [{"role": "user", "content": mensaje_usuario}]
@@ -250,12 +305,10 @@ def buscar(pregunta: str, video_id: str, top_k: int = 10) -> dict:
         "parlamentario), en vez de un único párrafo genérico.\n"
         "- CITA siempre por nombre y, si se conoce, por partido o grupo parlamentario "
         "(ej. 'Pérez Masó (Junts) defendió que...'), en vez de decir simplemente 'un diputado dijo...'.\n"
-        "- IMPORTANTE: usa EXACTAMENTE la etiqueta que aparece delante de cada fragmento en el "
-        "contexto (puede ser un nombre real como 'Pérez Masó', o un identificador técnico como "
-        "'SPEAKER_04' si no hay nombre disponible). NUNCA inventes ni sustituyas esa etiqueta por "
-        "numeraciones propias como 'Ponente 1', 'Ponente 2', 'Orador A', etc. Si la etiqueta es un "
-        "identificador técnico tipo SPEAKER_XX, repítelo tal cual; no lo hace más elegante ni claro "
-        "para el usuario y genera confusión con lo que se ve en el vídeo.\n"
+        "- Cada fragmento del contexto empieza con la identificación exacta de quien habla "
+        "(su nombre real, o un código como 'SPEAKER_04' cuando el sistema no pudo reconocer su "
+        "identidad). Copia siempre esa identificación tal cual aparece, letra por letra, al citarla "
+        "en tu respuesta.\n"
         "- Puedes usar el historial de la conversación para dar respuestas de seguimiento coherentes."
     )
 
@@ -325,9 +378,10 @@ def generar_resumen(video_id: str, n_fragmentos: int = 40) -> dict:
         "DEBES estructurar tu respuesta EXACTAMENTE con los siguientes dos encabezados:\n"
         "### 1. Índice de Temas\n"
         "### 2. Resumen Global\n\n"
-        "IMPORTANTE: cuando cites a un ponente, usa EXACTAMENTE la etiqueta que aparece delante "
-        "de cada fragmento (nombre real, o 'SPEAKER_XX' si no hay nombre disponible). "
-        "NUNCA inventes numeraciones propias como 'Ponente 1', 'Ponente 2', etc."
+        "Cada fragmento del contexto empieza con la identificación exacta de quien habla "
+        "(su nombre real, o un código como 'SPEAKER_XX' cuando el sistema no pudo reconocer su "
+        "identidad). Cuando cites a un ponente, copia siempre esa identificación tal cual "
+        "aparece, letra por letra."
     )
 
     mensaje = (
@@ -682,7 +736,7 @@ def obtener_intervencion_completa(video_id: str, ponente: str, inicio: float, fi
 
         pares = sorted(zip(metadatos, documentos), key=lambda x: x[0].get("inicio", 0))
 
-        # Usamos el nombre real (si se conoce) del primer fragmento encontrado,
+        # Usamos el nombre real del primer fragmento encontrado,
         # en vez de mostrar el identificador técnico SPEAKER_XX que se usó para filtrar.
         nombre_real = _nombre_mostrar(pares[0][0])
 
