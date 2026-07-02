@@ -74,6 +74,21 @@ export default function DashboardEstadisticas({ data }) {
       color: MAPA_COLORES[item.partido] || '#808080'
     }));
 
+  // Función para formatear el tiempo
+  const formatearTiempo = (segundos) => {
+    if (segundos < 60) {
+      return `${segundos.toFixed(1)} segundos`;
+    } else if (segundos < 3600) {
+      const minutos = Math.floor(segundos / 60);
+      const segsRestantes = Math.round(segundos % 60);
+      return `${minutos} min ${segsRestantes} seg`;
+    } else {
+      const horas = Math.floor(segundos / 3600);
+      const minutos = Math.floor((segundos % 3600) / 60);
+      return `${horas} h ${minutos} min`;
+    }
+  };
+
   // Tooltip personalizado para la tarta
   const CustomPieTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -81,7 +96,7 @@ export default function DashboardEstadisticas({ data }) {
       return (
         <div className="bg-[#1C1C1E]/90 backdrop-blur-md p-3 rounded-lg border border-white/10 text-white shadow-xl">
           <p className="font-semibold text-sm mb-1">{data.name}</p>
-          <p className="text-xs text-white/70">Tiempo: {data.value.toFixed(1)} segundos</p>
+          <p className="text-xs text-white/70">Tiempo: {formatearTiempo(data.value)}</p>
         </div>
       );
     }
@@ -191,20 +206,24 @@ export default function DashboardEstadisticas({ data }) {
 
           <div className="w-full h-64 flex-1">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={barrasFiltradas}
-                margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
-              >
-                <CartesianGrid stroke="#ffffff08" vertical={false} horizontal={true} />
-                <XAxis 
-                  dataKey="nombre" 
-                  stroke="transparent" 
-                  tick={{fill: '#ffffff60', fontSize: 11, fontWeight: 500}}
-                  tickFormatter={formatName}
-                  axisLine={false}
-                  tickLine={false}
-                  dy={10}
-                />
+                <BarChart
+                  data={barrasFiltradas}
+                  margin={{ top: 10, right: 10, left: -25, bottom: 35 }}
+                >
+                  <CartesianGrid stroke="#ffffff08" vertical={false} horizontal={true} />
+                  <XAxis 
+                    dataKey="nombre" 
+                    stroke="transparent" 
+                    tick={{fill: '#ffffff60', fontSize: 10, fontWeight: 500}}
+                    tickFormatter={formatName}
+                    axisLine={false}
+                    tickLine={false}
+                    interval={0}
+                    angle={-35}
+                    textAnchor="end"
+                    dy={5}
+                    dx={-2}
+                  />
                 <YAxis 
                   stroke="transparent" 
                   tick={{fill: '#ffffff30', fontSize: 11}} 
