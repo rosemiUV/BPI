@@ -4,7 +4,7 @@ import urllib.request
 import urllib.parse
 import chromadb
 from chromadb.utils import embedding_functions
-from mistralai import Mistral
+from mistralai.client import Mistral
 from groq import Groq
 from dotenv import load_dotenv
 
@@ -736,7 +736,7 @@ def obtener_intervencion_completa(video_id: str, ponente: str, inicio: float, fi
 
         pares = sorted(zip(metadatos, documentos), key=lambda x: x[0].get("inicio", 0))
 
-        # Usamos el nombre real del primer fragmento encontrado,
+        # Usamos el nombre real (si se conoce) del primer fragmento encontrado,
         # en vez de mostrar el identificador técnico SPEAKER_XX que se usó para filtrar.
         nombre_real = _nombre_mostrar(pares[0][0])
 
